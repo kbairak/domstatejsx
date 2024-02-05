@@ -3,13 +3,10 @@ import { createContext, useContext, useRefs, useStyleBoolean } from './lib/domst
 export default function App() {
   const [accordionRef] = useRefs();
 
-  function getContext() {
-    return useContext(accordionRef.current, Accordion.Context, { direction: 'down' })[0];
-  }
-  function handleExpandAll() { getContext().expandAll(); }
-  function handleCollapseAll() { getContext().collapseAll(); }
-  function handleTriggerItem2() { getContext().triggerItem('2'); }
-  function handleShowItem2() { getContext().triggerItem('2', true); }
+  function handleExpandAll() { accordionRef.context.expandAll(); }
+  function handleCollapseAll() { accordionRef.context.collapseAll(); }
+  function handleTriggerItem2() { accordionRef.context.triggerItem('2'); }
+  function handleShowItem2() { accordionRef.context.triggerItem('2', true); }
 
   return (
     <>

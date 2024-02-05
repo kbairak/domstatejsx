@@ -1,8 +1,8 @@
-const EXPOSE = {};
+export const EXPOSE = {};
 
 class Context {
   constructor(defaultValue) {
-    this.datasetKey = 'a' + crypto.randomUUID().replaceAll('-', '');
+    this.datasetKey = 'context' + crypto.randomUUID().replaceAll('-', '');
     this.defaultValue = defaultValue;
     this.Provider = this.Provider.bind(this);
   }

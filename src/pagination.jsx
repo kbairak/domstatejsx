@@ -23,9 +23,7 @@ export default function App() {
     onStart: () => setLoading(true),
     onEnd: () => setLoading(false),
     onSuccess: (data) => {
-      const { addPage, getPageNumber } = useContext(
-        pageList.current, PageList.Context, { direction: 'down' }
-      )[0];
+      const { addPage, getPageNumber } = pageList.context;
       addPage(data);
       setPrevDisabled(getPageNumber() === 0);
     },
@@ -34,9 +32,7 @@ export default function App() {
   setTimeout(() => fetch(1), 0);
 
   function handleNext() {
-    const { getPageNumber, getPageCount, showPage } = useContext(
-      pageList.current, PageList.Context, { direction: 'down' }
-    )[0];
+    const { getPageNumber, getPageCount, showPage } = pageList.context;
     if (getPageNumber() === getPageCount() - 1) {
       fetch(getPageNumber() + 2);
     } else {
@@ -46,9 +42,7 @@ export default function App() {
   }
 
   function handlePrevious() {
-    const { getPageNumber, showPage } = useContext(
-      pageList.current, PageList.Context, { direction: 'down' }
-    )[0];
+    const { getPageNumber, showPage } = pageList.context;
     showPage((prev) => prev - 1);
     setPrevDisabled(getPageNumber() === 0);
   }
