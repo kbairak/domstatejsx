@@ -25,10 +25,10 @@ class Query {
   }
 }
 
-export function useQuery({ call = true, ...props }) {
+export function useQuery({ active = true, ...props }) {
   const result = new Query(props);
   result.fetch = result.query.bind(result);
-  if (call) setTimeout(result.fetch, 0);
+  if (active) setTimeout(result.fetch, 0);
   return result;
 }
 

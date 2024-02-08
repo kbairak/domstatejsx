@@ -1,6 +1,6 @@
 import {
-  combineHooks,
-  createContext, useContext, usePropertyBoolean, useQuery, useRefs, useStyleBoolean
+  combineHooks, createContext, useList, usePropertyBoolean, useQuery, useRefs,
+  useStyleBoolean
 } from './lib/domstatejsx';
 
 async function fakeGet(page) {
@@ -19,26 +19,25 @@ export default function App() {
   );
 
   const { fetch } = useQuery({
-    queryFn: (page) => fakeGet(page),
+    queryFn: (page = 1) => fakeGet(page),
     onStart: () => setLoading(true),
     onEnd: () => setLoading(false),
     onSuccess: (data) => {
       const { addPage, getPageNumber } = pageList.context;
-      addPage(data);
+      addPage({ data });
       setPrevDisabled(getPageNumber() === 0);
     },
-    call: false,
   });
-  setTimeout(() => fetch(1), 0);
 
   function handleNext() {
     const { getPageNumber, getPageCount, showPage } = pageList.context;
-    if (getPageNumber() === getPageCount() - 1) {
-      fetch(getPageNumber() + 2);
+    const currentPageNumber = getPageNumber();
+    if (currentPageNumber === getPageCount() - 1) {
+      fetch(currentPageNumber + 2);
     } else {
       showPage((prev) => prev + 1);
     }
-    setPrevDisabled(getPageNumber() === 0);
+    setPrevDisabled(false);
   }
 
   function handlePrevious() {
@@ -61,27 +60,24 @@ export default function App() {
 
 function PageList() {
   const [head] = useRefs();
+  const [getPages, addPage] = combineHooks(
+    useList(head, Page),
+    [, () => showPage(getPageCount() - 1)],
+  );
 
   function getPageNumber() {
-    return useContext(head.current, Page.Context, { direction: 'down' })
-      .findIndex(({ isHidden }) => !isHidden());
+    return getPages().findIndex(({ context: { isHidden } }) => !isHidden());
   }
 
   function getPageCount() {
-    return useContext(head.current, Page.Context, { direction: 'down' }).length;
+    return getPages().length;
   }
 
   function showPage(indexOrFunc) {
     const index = (
       indexOrFunc instanceof Function ? indexOrFunc(getPageNumber()) : indexOrFunc
     );
-    useContext(head.current, Page.Context, { direction: 'down' })
-      .forEach(({ setIsHidden }, i) => { setIsHidden(i !== index); });
-  }
-
-  function addPage(data) {
-    head.current.append(<Page data={data} />);
-    showPage(getPageCount() - 1);
+    getPages().forEach(({ context: { setIsHidden } }, i) => setIsHidden(i !== index));
   }
 
   return (
@@ -94,13 +90,12 @@ function PageList() {
 PageList.Context = createContext();
 
 function Page({ data }) {
-  const [page] = useRefs();
-
-  const [isHidden, setIsHidden] = useStyleBoolean(page, 'display', 'none', null);
+  const [head] = useRefs();
+  const [isHidden, setIsHidden] = useStyleBoolean(head, 'display', 'none', null);
 
   return (
-    <Page.Context.Provider value={{ isHidden, setIsHidden }}>
-      <ul ref={page}>
+    <Page.Context.Provider value={{ isHidden, setIsHidden }} ref={head}>
+      <ul>
         {data.map((message) => <li>{message}</li>)}
       </ul>
     </Page.Context.Provider>

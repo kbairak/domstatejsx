@@ -1,6 +1,6 @@
 import {
   usePropertyBoolean, useQuery, useStyleBoolean, combineHooks, useRefs,
-  useMutation, useErrorMessage
+  useMutation, useErrorMessage, useTextInput
 } from './lib/domstatejsx';
 
 const fakeApi = {
@@ -19,8 +19,11 @@ const fakeApi = {
 };
 
 export default function App() {
-  const [messageList, fetchSpinner, newMessageButton, errorParagraph] = useRefs();
+  const [
+    errorParagraph, newMessageInput, newMessageButton, fetchSpinner, messageList
+  ] = useRefs();
 
+  const [getNewMessageInput, setNewmessageInput] = useTextInput(newMessageInput);
   const [, setFetchLoading] = combineHooks(
     useStyleBoolean(messageList, 'display', 'none', null),
     useStyleBoolean(fetchSpinner, 'display', null, 'none'),
@@ -43,6 +46,7 @@ export default function App() {
     onEnd: () => setMutationLoading(false),
     onSuccess: () => {
       setErrorMessage(null);
+      setNewmessageInput('');
       fetch();
     },
     onError: (error) => setErrorMessage(error.message),
@@ -50,17 +54,18 @@ export default function App() {
 
   async function handleNew(event) {
     event.preventDefault();
-    const input = event.target['message'];
-    if (!input.value) return;
-    await mutate(input.value);
-    input.value = '';
+    if (!getNewMessageInput()) {
+      setErrorMessage('This field is required');
+      return;
+    }
+    await mutate(getNewMessageInput());
   }
 
   return (
     <>
       <form onSubmit={handleNew}>
-        <p>New message: <input name="message" autoFocus /></p>
-        <p style={{ display: 'none' }} ref={errorParagraph} />
+        <p>New message: <input autoFocus ref={newMessageInput} /></p>
+        <p style={{ display: 'none', color: 'red' }} ref={errorParagraph} />
         <p><button ref={newMessageButton}>Save</button></p>
       </form>
       <p ref={fetchSpinner}>Loading...</p>

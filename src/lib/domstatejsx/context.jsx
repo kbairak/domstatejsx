@@ -11,7 +11,7 @@ class Context {
     let node;
     if (children === undefined) {
       node = <div />;
-    } else if (children instanceof Array) {
+    } else if (children instanceof Array || children instanceof DocumentFragment) {
       node = <div>{children}</div>;
     } else {
       node = children;
@@ -36,7 +36,7 @@ export function createContext(defaultValue) {
 }
 
 function findUp(node, context) {
-  let currentNode = node;
+  let currentNode = node.parentElement;
   while (currentNode) {
     if (context.datasetKey in currentNode.dataset) return currentNode;
     currentNode = currentNode.parentElement;
@@ -45,16 +45,17 @@ function findUp(node, context) {
 }
 
 function findDown(node, context) {
-  const result = [];
-  if (context.datasetKey in node.dataset) result.push(node);
-  const query = `[data-${context.datasetKey}]`;
-  result.push(...[...node.querySelectorAll(query)]);
-  return result;
+  // const result = [];
+  // if (context.datasetKey in node.dataset) result.push(node);
+  return [...node.querySelectorAll(`[data-${context.datasetKey}]`)];
 }
 
 export function useContext(node, context, { direction = 'up', upContext = null } = {}) {
   if (direction === 'up') {
-    return EXPOSE[findUp(node, context).dataset[context.datasetKey]];
+    const parent = findUp(node, context);
+    if (parent) {
+      return EXPOSE[parent.dataset[context.datasetKey]];
+    }
   } else if (direction === 'down') {
     return findDown(node, context)
       .map((element) => EXPOSE[element.dataset[context.datasetKey]]);

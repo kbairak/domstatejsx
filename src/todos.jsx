@@ -2,56 +2,60 @@ import './tailwind.css';
 
 import {
   combineHooks, createContext, useCheckbox, useClassBoolean, useContext,
-  useIntContent, useRefs, useTextContent,
+  useIntContent, useRefs, useTextContent, useList
 } from './lib/domstatejsx';
 
 export default function App() {
-  const [head, totalSpan, doneSpan, todoList] = useRefs();
+  const [totalSpan, doneSpan, todoList] = useRefs();
 
   const [, setTotal] = useIntContent(totalSpan);
   const [, setDone] = useIntContent(doneSpan);
+
+  const [getTodos, addTodos] = combineHooks(
+    useList(todoList, Todo),
+    [, (...args) => setTotal((prev) => prev + args.length)],
+    [, (...args) => setDone((prev) => prev + args.filter(({ done }) => done).length)],
+    [, save],
+  );
 
   function handleAdd(event) {
     event.preventDefault();
     const input = event.target['text'];
     if (!input.value) return;
-    todoList.current.append(<Todo text={input.value} />);
+    addTodos({ text: input.value });
     input.value = '';
-    setTotal((prev) => prev + 1);
-    save();
   }
 
-  function onDelete(done) {
+  function onDelete(wasDone) {
     setTotal((prev) => prev - 1);
-    setDone((prev) => prev - Number(done));
+    setDone((prev) => prev - (wasDone ? 1 : 0));
   }
 
   function onDone(done) { setDone((prev) => prev + (done ? 1 : -1)); }
 
   function onToggleEdit(id) {
-    useContext(head.current, Todo.Context, { direction: 'down' })
-      .forEach(({ id: todoId, toggleForm }) => toggleForm(id === todoId ? null : false));
+    getTodos().forEach(({ context: { id: todoId, toggleForm } }) => toggleForm(
+      id === todoId ? null : false
+    ));
   }
 
   function save() {
-    const data = useContext(todoList.current, Todo.Context, { direction: 'down' })
-      .map(({ getText, isDone }) => ({ text: getText(), done: isDone() }));
-    localStorage.setItem('todos', JSON.stringify(data));
+    localStorage.setItem(
+      'todos',
+      JSON.stringify(getTodos().map(({ context: { getText, isDone } }) => ({
+        text: getText(), done: isDone()
+      })))
+    );
   }
 
   setTimeout(() => {
     let data = localStorage.getItem('todos');
     if (!data) return;
-    data = JSON.parse(data);
-    todoList.current.replaceChildren(
-      ...data.map(({ text, done }) => <Todo text={text} done={done} />)
-    );
-    setTotal(data.length);
-    setDone(data.filter(({ done }) => done).length);
+    addTodos(...JSON.parse(data));
   }, 0);
 
   return (
-    <App.Context.Provider value={{ onDelete, onDone, onToggleEdit, save }} ref={head}>
+    <App.Context.Provider value={{ onDelete, onDone, onToggleEdit, save }}>
       <div class="max-w-[64rem] mx-auto">
         <h1 class="text-2xl">My Todo app</h1>
         <h2 class="text-xl">
@@ -73,29 +77,29 @@ App.Context = createContext();
 
 function Todo({ text, done = false }) {
   const [head, doneCheckbox, textSpan, textForm, textInput] = useRefs();
-
-  const [getText, setText] = useTextContent(textSpan);
-  const [isDone, setIsDone] = combineHooks(
-    useCheckbox(doneCheckbox),
-    useClassBoolean(textSpan, 'line-through', null),
-  );
+  const id = crypto.randomUUID();
 
   const [, setIsEditing] = combineHooks(
     useClassBoolean(textSpan, 'hidden', null),
-    useClassBoolean(textForm, null, 'hidden'),
-    [, (value) => {
-      if (value) {
-        textInput.current.focus();
-      }
-    }],
+    useClassBoolean(textForm, 'flex', 'hidden'),
+    [, (value) => { if (value) textInput.current.focus(); }],
   );
 
-  function handleDone(event) {
-    setIsDone(event.target.checked);
-    const { onDone, save } = useContext(head.current, App.Context);
-    onDone(event.target.checked);
-    save();
-  }
+  const [getText, setText] = combineHooks(
+    useTextContent(textSpan),
+    [, () => useContext(head.current, App.Context).save()],
+    [, () => setIsEditing(false)],
+  );
+
+  const [isDone, setIsDone] = combineHooks(
+    useCheckbox(doneCheckbox),
+    useClassBoolean(textSpan, 'line-through', null),
+    [, (value) => {
+      const { onDone, save } = useContext(head.current, App.Context);
+      onDone(value);
+      save();
+    }],
+  );
 
   function handleDelete() {
     const { onDelete, save } = useContext(head.current, App.Context);
@@ -104,25 +108,19 @@ function Todo({ text, done = false }) {
     save();
   }
 
-  const id = crypto.randomUUID();
   function handleToggleEdit() {
-    const { onToggleEdit } = useContext(head.current, App.Context);
-    onToggleEdit(id);
+    useContext(head.current, App.Context).onToggleEdit(id);
   }
 
   function toggleForm(value) {
     setIsEditing(value === null ? ((prev) => !prev) : value);
   }
 
-  function handleEdit(event) {
+  function handleSubmitEdit(event) {
     event.preventDefault();
     const input = event.target['text'];
-    if (input.value) {
-      setText(input.value);
-      const { save } = useContext(head.current, App.Context);
-      save();
-    }
-    setIsEditing(false);
+    if (!input.value) return;
+    setText(input.value);
   }
 
   return (
@@ -133,7 +131,7 @@ function Todo({ text, done = false }) {
             <input
               type="checkbox"
               checked={done}
-              onChange={handleDone}
+              onChange={(e) => setIsDone(e.target.checked)}
               ref={doneCheckbox}
             />
             <button onClick={handleDelete}>❌</button>
@@ -142,7 +140,7 @@ function Todo({ text, done = false }) {
           <span ref={textSpan} class={done ? 'line-through' : null}>
             {text}
           </span>
-          <form onSubmit={handleEdit} ref={textForm} class="hidden flex gap-x-4">
+          <form onSubmit={handleSubmitEdit} ref={textForm} class="hidden gap-x-4">
             <input
               name="text"
               value={text}

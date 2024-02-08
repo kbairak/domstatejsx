@@ -102,7 +102,7 @@ export function useErrorMessage(ref) {
   }
 
   function set(value) {
-    if (value === null) {
+    if (!value) {
       ref.current.textContent = '';
       ref.current.style.setProperty('display', 'none');
     } else {
@@ -128,4 +128,17 @@ export function useClassBoolean(ref, onValue, offValue) {
     }
   }
   return [get, acceptsFunc(set, get)];
+}
+
+export function useList(ref, Component) {
+  const refs = [];
+  function get() {
+    return refs.filter(({ current: { parentElement } }) => parentElement);
+  }
+  function set(...args) {
+    ref.current.append(
+      ...args.map((props) => <Component {...props} ref={(r) => refs.push(r)} />)
+    );
+  }
+  return [get, set];
 }
