@@ -1,3 +1,3 @@
-import App from './todos';
+import App from './router';
 
 document.body.append(<App />);

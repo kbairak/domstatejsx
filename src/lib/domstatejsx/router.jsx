@@ -51,6 +51,11 @@ export function Route({ path, end = false, element, children }) {
   const component = children || element;
 
   function render(pathname, receivedProps) {
+    // TODO:
+    //   - If route is different than the old one, clear the old one and render
+    //     the new one
+    //   - else, if props are different, rerender the old one
+    //   - else, do nothing
     head.current.replaceChildren(component(receivedProps));
     if (!pathname) return;
     const [route, props] = findRoute(head, pathname);
