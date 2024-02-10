@@ -1,74 +1,64 @@
-import { createContext, useContext } from './context';
+import { createContext, findUp, useContext } from './context';
+import { isEqual } from 'lodash';
 import { useRefs } from './hooks';
 
 function convertToPattern(path) {
   return '^' + path.replaceAll(/:[^\/]+/g, (m) => `(?<${m.substring(1)}>[^/]+)`);
 }
 
-function findRoute(ref, pathname) {
-  let match;
-  const route = useContext(ref.current, Route.Context, { direction: 'down' })
-    .find(({ path, end }) => {
-      const pattern = new RegExp(convertToPattern(path) + (end ? '$' : ''));
-      match = pattern.exec(pathname);
-      if (!match) return false;
-      return true;
-    });
-  return [route, match?.groups || {}];
-}
-
-export function Router({ NotFound, children }) {
+export function Route({ path, end, NotFound, element, children }) {
+  console.log(path, 'called');
   const [head] = useRefs();
+  const Component = children || element;
 
-  function render(pathname) {
-    const [route, props] = findRoute(head, pathname);
-    if (route) {
-      route.render(pathname.substring(route.path.length), props);
-    } else {
+  setTimeout(() => {
+    console.log(path, 'defer');
+    if (head.current.parentElement && !useContext(head.current, Route.Context)) {
+      console.log(path, 'I am (g)root');
+      // If I am the top Route
+      render(location.pathname);
+      window.addEventListener('popstate', () => render(location.pathname));
+    }
+  }, 0);
+
+  let lastProps = undefined;
+  function render(pathname, props = {}) {
+    console.log(path, 'render');
+    if (isEmpty() || !isEqual(lastProps, props)) {
+      head.current.replaceChildren(<Component {...props} />);
+    }
+    let found = false;
+    useContext(head.current, Route.Context, { direction: 'down' })
+      .forEach(({
+        path: childPath,
+        end: childEnd,
+        render: childRender,
+        clear: childClear,
+        isDirectChildOf: childIsDirectChildOf,
+      }) => {
+        if (!childIsDirectChildOf(head.current)) return;
+        const pattern = new RegExp(convertToPattern(childPath) + (childEnd ? '$' : ''));
+        const match = pattern.exec(pathname);
+        if (match) {
+          childRender(pathname.substring(match[0].length), match.groups || {});
+          found = true;
+        } else {
+          childClear();
+        }
+      });
+    lastProps = props;
+    if (!found && pathname) {
       renderNotFound();
     }
   }
 
-  setTimeout(() => render(location.pathname), 0);
-
   function renderNotFound() {
-    head.current.replaceChildren(<NotFound />);
-  }
-
-  window.addEventListener('popstate', () => render(location.pathname));
-
-  return (
-    <Router.Context.Provider value={{ renderNotFound }} ref={head}>
-      {children}
-    </Router.Context.Provider>
-  );
-}
-Router.Context = createContext();
-
-export function Route({ path, end = false, element, children }) {
-  const [head] = useRefs();
-
-  const component = children || element;
-
-  function render(pathname, receivedProps) {
-    // TODO:
-    //   - If route is different than the old one, clear the old one and render
-    //     the new one
-    //   - else, if props are different, rerender the old one
-    //   - else, do nothing
-    head.current.replaceChildren(component(receivedProps));
-    if (!pathname) return;
-    const [route, props] = findRoute(head, pathname);
-    if (route) {
-      route.render(pathname.substring(route.path.length), props);
+    console.log(path, 'renderNotFound');
+    if (NotFound) {
+      head.current.replaceChildren(<NotFound />);
     } else {
-      useContext(head.current, Router.Context).renderNotFound();
+      useContext(head.current, Route.Context).renderNotFound();
     }
-  }
-
-  function getPath() {
-    const parent = useContext(head.current, Route.Context);
-    return parent ? parent.getPath() + path : path;
   }
 
   function navigate(to, { initial }) {
@@ -83,13 +73,32 @@ export function Route({ path, end = false, element, children }) {
     if (initial) history.pushState({}, "", to);
   }
 
+  function getPath() {
+    const parent = useContext(head.current, Route.Context);
+    return parent ? parent.getPath() + path : path;
+  }
+
+  function isEmpty() {
+    return head.current.childElementCount === 0;
+  }
+
+  function clear() {
+    head.current.innerHTML = '';
+  }
+
+  function isDirectChildOf(parent) {
+    return findUp(head.current, Route.Context) === parent;
+  }
+
   return (
-    <div>
-      <Route.Context.Provider
-        value={{ path, end, render, getPath, navigate }}
-        ref={head}
-      />
-    </div>
+    <Route.Context.Provider
+      value={{
+        path, end, render, clear, renderNotFound, navigate, getPath, isDirectChildOf
+      }}
+      ref={head}
+    >
+      <div />
+    </Route.Context.Provider>
   );
 }
 Route.Context = createContext();
@@ -98,8 +107,9 @@ export function Link({ to, children }) {
   return (
     <button
       onClick={
-        (event) => useContext(event.target, Route.Context)
-          .navigate(to, { initial: true })
+        (event) => {
+          useContext(event.target, Route.Context).navigate(to, { initial: true });
+        }
       }
     >
       {children}

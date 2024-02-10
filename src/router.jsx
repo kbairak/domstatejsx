@@ -1,23 +1,21 @@
-import { Router, Route, Link } from './lib/domstatejsx';
+import { Route, Link } from './lib/domstatejsx';
 
-export default function App() {
+export default function App_() {
   return (
-    <Router NotFound={NotFound}>
-      <Route path="">
-        {() => (
-          <>
-            <div>
-              <Link to="/">Home</Link>
-              <Link to="/about">About</Link>
-              <Link to="/pages">Pages</Link>
-            </div>
-            <Route path="/" end element={Home} />
-            <Route path="/about" end element={About} />
-            <Route path="/pages" element={Pages} />
-          </>
-        )}
-      </Route>
-    </Router>
+    <Route path="" NotFound={NotFound}>
+      {() => (
+        <>
+          <div>
+            <Link to="/">Home</Link>
+            <Link to="/about">About</Link>
+            <Link to="/pages">Pages</Link>
+          </div>
+          <Route path="/" end element={Home} />
+          <Route path="/about" end element={About} />
+          <Route path="/pages" element={Pages} />
+        </>
+      )}
+    </Route>
   );
 }
 

@@ -16,14 +16,19 @@ class Form {
     setTimeout(() => this.reset(), 0);
   }
 
-  register = (name, { required = false, validate = [] } = {}) => {
+  register = (name, { required = false, maxLength = null, validate = [] } = {}) => {
     if (!(name in this.defaultValues)) {
       this.defaultValues[name] = '';
     }
 
     this.validations[name] = [];
     if (required) {
-      this.validations[name].push((value) => value ? null : 'This field is required');
+      this.validations[name].push((value) => !value && 'This field is required');
+    }
+    if (maxLength !== null) {
+      this.validations[name].push((value) => (
+        value.length > maxLength && `Input cannot exceed ${maxLength} characters`
+      ));
     }
     if (validate instanceof Array) {
       this.validations[name].push(...validate);

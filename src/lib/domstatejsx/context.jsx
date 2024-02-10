@@ -35,7 +35,7 @@ export function createContext(defaultValue) {
   return new Context(defaultValue);
 }
 
-function findUp(node, context) {
+export function findUp(node, context) {
   let currentNode = node.parentElement;
   while (currentNode) {
     if (context.datasetKey in currentNode.dataset) return currentNode;
@@ -45,8 +45,6 @@ function findUp(node, context) {
 }
 
 function findDown(node, context) {
-  // const result = [];
-  // if (context.datasetKey in node.dataset) result.push(node);
   return [...node.querySelectorAll(`[data-${context.datasetKey}]`)];
 }
 

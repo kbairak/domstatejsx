@@ -1,7 +1,6 @@
 {
   "name": "domstatejsx",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.0.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,6 +14,34 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "jsx-dom": "^8.1.2"
-  }
+    "jsx-dom": "^8.1.2",
+    "lodash": "^4.17.21"
+  },
+  "description": "JSX component library for applications whose state lives in the DOM",
+  "license": "MIT",
+  "keywords": [
+    "frontend",
+    "components",
+    "JSX",
+    "DOM",
+    "state management",
+    "library"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kbairak/domstatejsx"
+  },
+  "author": "Konstantinos Bairaktaris <ikijob@gmail.com> (https://kbairak.net)",
+  "main": "dist/index.js",
+  "browser": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./jsx-runtime": "./dist/jsx-runtime.js",
+    "./jsx-dev-runtime": "./dist/jsx-dev-runtime.js",
+    "./vite-plugin": "./dist/vite-plugin.js"
+  },
+  "files": [
+    "dist/*"
+  ]
 }
