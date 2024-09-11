@@ -10,12 +10,12 @@ class Context {
   Provider({ value, children }) {
     let node;
     if (children === undefined) {
-      node = <div />;
+      node = <span />;
     } else if (
       children instanceof Array ||
       children instanceof DocumentFragment
     ) {
-      node = <div>{children}</div>;
+      node = <span>{children}</span>;
     } else {
       node = children;
     }
@@ -69,7 +69,7 @@ export function useContext(
       (element) => EXPOSE[element.dataset[context.datasetKey]],
     );
   } else if (direction === 'side') {
-    const upNode = findUp(node, upContext);
+    const upNode = findUp(node, upContext) || document.body;
     return useContext(upNode, context, { direction: 'down' });
   }
 }

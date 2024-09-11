@@ -2,20 +2,51 @@ import { Route, Link } from './lib/domstatejsx';
 
 export default function App() {
   return (
-    <Route path="" NotFound={NotFound}>
-      {() => (
+    <Route
+      render={() => (
         <>
           <div>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-            <Link to="/pages">Pages</Link>
+            <Link
+              to="/"
+              render={({ onClick, isActive }) => (
+                <button
+                  onClick={onClick}
+                  style={isActive() ? { backgroundColor: 'red' } : {}}
+                >
+                  Home
+                </button>
+              )}
+            />
+            <Link
+              to="/about"
+              render={({ onClick, isActive }) => (
+                <button
+                  onClick={onClick}
+                  style={isActive() ? { backgroundColor: 'red' } : {}}
+                >
+                  About
+                </button>
+              )}
+            />
+            <Link
+              to="/pages"
+              render={({ onClick, isActive }) => (
+                <button
+                  onClick={onClick}
+                  style={isActive() ? { backgroundColor: 'red' } : {}}
+                >
+                  Pages
+                </button>
+              )}
+            />
           </div>
-          <Route path="/" end element={Home} />
-          <Route path="/about" end element={About} />
-          <Route path="/pages" element={Pages} />
+          <Route path="/" end render={Home} />
+          <Route path="/about" end render={About} />
+          <Route path="/pages" render={Pages} />
         </>
       )}
-    </Route>
+      NotFound={NotFound}
+    />
   );
 }
 
@@ -32,17 +63,51 @@ function Pages() {
     <>
       <h1>This is pages</h1>
       <div>
-        <Link to="/pages/1">1</Link>
-        <Link to="/pages/2">2</Link>
-        <Link to="/pages/3">3</Link>
+        <Link
+          to="/pages/1"
+          render={({ onClick, isActive }) => (
+            <button
+              onClick={onClick}
+              style={isActive() ? { backgroundColor: 'red' } : {}}
+            >
+              1
+            </button>
+          )}
+        />
+        <Link
+          to="/pages/2"
+          render={({ onClick, isActive }) => (
+            <button
+              onClick={onClick}
+              style={isActive() ? { backgroundColor: 'red' } : {}}
+            >
+              2
+            </button>
+          )}
+        />
+        <Link
+          to="/pages/3"
+          render={({ onClick, isActive }) => (
+            <button
+              onClick={onClick}
+              style={isActive() ? { backgroundColor: 'red' } : {}}
+            >
+              3
+            </button>
+          )}
+        />
       </div>
-      <Route path="/:page" end element={Page} />
+      <Route path="/:page" end render={Page} />
     </>
   );
 }
 
 function Page({ page }) {
-  return <h1>This is page {page}</h1>;
+  if (['1', '2', '3'].includes(page)) {
+    return <h1>This is page {page}</h1>;
+  } else {
+    return NotFound();
+  }
 }
 
 function NotFound() {

@@ -1187,10 +1187,10 @@ Routing:
 
 - [ ] Routing with `<Outlet/>`s
 - [ ] Data router
-- [ ] Make `<Link>`s aware of whether they are selected
-- [ ] There is a bug somewhere with path matching (I don't remember what exactly)
+- [x] Make `<Link>`s aware of whether they are selected
+- [x] There is a bug somewhere with path matching (I don't remember what exactly)
 
 Context:
 
 - [ ] Test with different contents of `<Provider>`s
-- [ ] See if we can avoid extra `<div>`s with fragments
+- [x] See if we can avoid extra `<div>`s with fragments
