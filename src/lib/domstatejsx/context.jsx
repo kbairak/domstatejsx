@@ -11,7 +11,10 @@ class Context {
     let node;
     if (children === undefined) {
       node = <div />;
-    } else if (children instanceof Array || children instanceof DocumentFragment) {
+    } else if (
+      children instanceof Array ||
+      children instanceof DocumentFragment
+    ) {
       node = <div>{children}</div>;
     } else {
       node = children;
@@ -21,7 +24,11 @@ class Context {
     EXPOSE[providerUuid] = value || this.defaultValue;
     setTimeout(() => {
       new MutationObserver((records, observer) => {
-        if (records.find((record) => [...record.removedNodes].find((n) => n === node))) {
+        if (
+          records.find((record) =>
+            [...record.removedNodes].find((n) => n === node),
+          )
+        ) {
           delete EXPOSE[providerUuid];
           observer.disconnect();
         }
@@ -41,22 +48,26 @@ export function findUp(node, context) {
     if (context.datasetKey in currentNode.dataset) return currentNode;
     currentNode = currentNode.parentElement;
   }
-
 }
 
 function findDown(node, context) {
   return [...node.querySelectorAll(`[data-${context.datasetKey}]`)];
 }
 
-export function useContext(node, context, { direction = 'up', upContext = null } = {}) {
+export function useContext(
+  node,
+  context,
+  { direction = 'up', upContext = null } = {},
+) {
   if (direction === 'up') {
     const parent = findUp(node, context);
     if (parent) {
       return EXPOSE[parent.dataset[context.datasetKey]];
     }
   } else if (direction === 'down') {
-    return findDown(node, context)
-      .map((element) => EXPOSE[element.dataset[context.datasetKey]]);
+    return findDown(node, context).map(
+      (element) => EXPOSE[element.dataset[context.datasetKey]],
+    );
   } else if (direction === 'side') {
     const upNode = findUp(node, upContext);
     return useContext(upNode, context, { direction: 'down' });

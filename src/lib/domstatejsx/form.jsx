@@ -1,7 +1,7 @@
 /*  TODOs:
-  *  - selects
-  *  - other components
-  * */
+ *  - selects
+ *  - other components
+ * */
 
 class Form {
   constructor({ when = 'onChange', defaultValues = {} } = {}) {
@@ -16,19 +16,26 @@ class Form {
     setTimeout(() => this.reset(), 0);
   }
 
-  register = (name, { required = false, maxLength = null, validate = [] } = {}) => {
+  register = (
+    name,
+    { required = false, maxLength = null, validate = [] } = {},
+  ) => {
     if (!(name in this.defaultValues)) {
       this.defaultValues[name] = '';
     }
 
     this.validations[name] = [];
     if (required) {
-      this.validations[name].push((value) => !value && 'This field is required');
+      this.validations[name].push(
+        (value) => !value && 'This field is required',
+      );
     }
     if (maxLength !== null) {
-      this.validations[name].push((value) => (
-        value.length > maxLength && `Input cannot exceed ${maxLength} characters`
-      ));
+      this.validations[name].push(
+        (value) =>
+          value.length > maxLength &&
+          `Input cannot exceed ${maxLength} characters`,
+      );
     }
     if (validate instanceof Array) {
       this.validations[name].push(...validate);
@@ -37,22 +44,32 @@ class Form {
     }
 
     return {
-      ref: ({ current }) => { this.fieldRefs[name] = current; },
+      ref: ({ current }) => {
+        this.fieldRefs[name] = current;
+      },
       [this.when]: (event) => {
         this.validateField(name, event.target.value);
         if (this.buttonRef !== null) {
           this.buttonRef.disabled = this.hasErrors();
         }
-      }
+      },
     };
   };
 
   registerError = (name) => {
-    return { ref: ({ current }) => { this.errorRefs[name] = current; } };
+    return {
+      ref: ({ current }) => {
+        this.errorRefs[name] = current;
+      },
+    };
   };
 
   registerButton = () => {
-    return { ref: ({ current }) => { this.buttonRef = current; } };
+    return {
+      ref: ({ current }) => {
+        this.buttonRef = current;
+      },
+    };
   };
 
   handleSubmit = (func) => {
@@ -62,7 +79,9 @@ class Form {
       if (!this.hasErrors()) {
         func(this.getData());
       } else {
-        if (this.buttonRef !== null) { this.buttonRef.disabled = this.hasErrors(); }
+        if (this.buttonRef !== null) {
+          this.buttonRef.disabled = this.hasErrors();
+        }
       }
     };
   };
@@ -81,23 +100,27 @@ class Form {
 
   getData = () => {
     return Object.fromEntries(
-      Object.entries(this.fieldRefs).map(([name, ref]) => [name, ref.value])
+      Object.entries(this.fieldRefs).map(([name, ref]) => [name, ref.value]),
     );
   };
 
   getErrors = () => {
     return Object.fromEntries(
-      Object.entries(this.errorRefs)
-        .map(([name, element]) => [name, (
-          element.tagName.toLowerCase() === 'ul' ?
-            [...element.children].map((li) => li.textContent) :
-            (element.textContent ? [element.textContent] : [])
-        )])
+      Object.entries(this.errorRefs).map(([name, element]) => [
+        name,
+        element.tagName.toLowerCase() === 'ul'
+          ? [...element.children].map((li) => li.textContent)
+          : element.textContent
+            ? [element.textContent]
+            : [],
+      ]),
     );
   };
 
   hasErrors = () => {
-    return !!Object.values(this.getErrors()).find((errorlist) => errorlist.length);
+    return !!Object.values(this.getErrors()).find(
+      (errorlist) => errorlist.length,
+    );
   };
 
   validateField(name, value) {
@@ -109,7 +132,9 @@ class Form {
     if (errors.length) {
       errorElement.style.removeProperty('display');
       if (errorElement.tagName.toLowerCase() === 'ul') {
-        errorElement.replaceChildren(...errors.map((error) => <li>{error}</li>));
+        errorElement.replaceChildren(
+          ...errors.map((error) => <li>{error}</li>),
+        );
       } else {
         this.errorRefs[name].textContent = errors.join(', ');
       }
@@ -120,8 +145,9 @@ class Form {
   }
 
   validateAll() {
-    Object.entries(this.fieldRefs)
-      .forEach(([name, element]) => this.validateField(name, element.value));
+    Object.entries(this.fieldRefs).forEach(([name, element]) =>
+      this.validateField(name, element.value),
+    );
   }
 }
 

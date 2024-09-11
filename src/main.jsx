@@ -1,3 +1,3 @@
-import App from './todos';
+import App from './pagination';
 
 document.body.append(<App />);

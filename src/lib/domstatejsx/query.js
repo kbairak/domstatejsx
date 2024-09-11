@@ -1,10 +1,10 @@
 class Query {
   constructor({
     queryFn,
-    onStart = () => {},
-    onEnd = () => {},
-    onSuccess = () => {},
-    onError = () => {},
+    onStart = () => { },
+    onEnd = () => { },
+    onSuccess = () => { },
+    onError = () => { },
   }) {
     this.queryFn = queryFn;
     this.onStart = onStart;
@@ -32,8 +32,8 @@ export function useQuery({ active = true, ...props }) {
   return result;
 }
 
-export function useMutation({ ...props }) {
-  const result = new Query(props);
+export function useMutation({ mutationFn, ...props }) {
+  const result = new Query({ queryFn: mutationFn, ...props });
   result.mutate = result.query.bind(result);
   return result;
 }

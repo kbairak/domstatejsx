@@ -6,7 +6,7 @@ export default function domstatejsxPlugin() {
       esbuild: {
         jsx: 'automatic',
         jsxImportSource: 'domstatejsx',
-      }
+      },
     }),
   };
 }

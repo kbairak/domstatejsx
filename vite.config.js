@@ -16,5 +16,5 @@ export default defineConfig({
   esbuild: {
     jsx: 'automatic',
     jsxImportSource: '/src/lib/domstatejsx',
-  }
+  },
 });

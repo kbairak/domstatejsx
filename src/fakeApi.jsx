@@ -1,6 +1,12 @@
 import {
-  usePropertyBoolean, useQuery, useStyleBoolean, combineHooks, useRefs,
-  useMutation, useErrorMessage, useTextInput
+  usePropertyBoolean,
+  useQuery,
+  useStyleBoolean,
+  combineHooks,
+  useRefs,
+  useMutation,
+  useErrorMessage,
+  useTextInput,
 } from './lib/domstatejsx';
 
 const fakeApi = {
@@ -20,28 +26,39 @@ const fakeApi = {
 
 export default function App() {
   const [
-    errorParagraph, newMessageInput, newMessageButton, fetchSpinner, messageList
+    errorParagraph,
+    newMessageInput,
+    newMessageButton,
+    fetchSpinner,
+    messageList,
   ] = useRefs();
 
-  const [getNewMessageInput, setNewmessageInput] = useTextInput(newMessageInput);
+  const [getNewMessageInput, setNewmessageInput] =
+    useTextInput(newMessageInput);
   const [, setFetchLoading] = combineHooks(
     useStyleBoolean(messageList, 'display', 'none', null),
     useStyleBoolean(fetchSpinner, 'display', null, 'none'),
   );
-  const [, setMutationLoading] = usePropertyBoolean(newMessageButton, 'disabled', true, false);
+  const [, setMutationLoading] = usePropertyBoolean(
+    newMessageButton,
+    'disabled',
+    true,
+    false,
+  );
   const [, setErrorMessage] = useErrorMessage(errorParagraph);
 
   const { fetch } = useQuery({
     queryFn: fakeApi.get,
     onStart: () => setFetchLoading(true),
     onEnd: () => setFetchLoading(false),
-    onSuccess: (data) => messageList.current.replaceChildren(
-      ...data.map((message) => <li>{message}</li>)
-    ),
+    onSuccess: (data) =>
+      messageList.current.replaceChildren(
+        ...data.map((message) => <li>{message}</li>),
+      ),
   });
 
   const { mutate } = useMutation({
-    queryFn: fakeApi.post,
+    mutationFn: fakeApi.post,
     onStart: () => setMutationLoading(true),
     onEnd: () => setMutationLoading(false),
     onSuccess: () => {
@@ -64,9 +81,13 @@ export default function App() {
   return (
     <>
       <form onSubmit={handleNew}>
-        <p>New message: <input autoFocus ref={newMessageInput} /></p>
+        <p>
+          New message: <input autoFocus ref={newMessageInput} />
+        </p>
         <p style={{ display: 'none', color: 'red' }} ref={errorParagraph} />
-        <p><button ref={newMessageButton}>Save</button></p>
+        <p>
+          <button ref={newMessageButton}>Save</button>
+        </p>
       </form>
       <p ref={fetchSpinner}>Loading...</p>
       <ul style={{ display: 'none' }} ref={messageList} />

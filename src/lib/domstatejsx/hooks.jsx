@@ -3,10 +3,7 @@ export function* useRefs() {
 }
 
 export function combineHooks(...hooks) {
-  function get() {
-    const [innerGet] = hooks[0];
-    return innerGet();
-  }
+  const [get] = hooks[0];
 
   function set(...args) {
     hooks.forEach(([, innerSet]) => innerSet(...args));
@@ -16,21 +13,34 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function (valueOrFunc) {
-    const value = valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
+  return function(valueOrFunc) {
+    const value =
+      valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
   };
 }
 
 export function useTextContent(ref) {
-  function get() { return ref.current.textContent; }
-  function set(value) { ref.current.textContent = value; }
+  function get() {
+    return ref.current.textContent;
+  }
+
+  function set(value) {
+    ref.current.textContent = value;
+  }
+
   return [get, acceptsFunc(set, get)];
 }
 
 export function useIntContent(ref) {
-  function get() { return parseInt(ref.current.textContent); }
-  function set(value) { ref.current.textContent = `${value}`; }
+  function get() {
+    return parseInt(ref.current.textContent);
+  }
+
+  function set(value) {
+    ref.current.textContent = `${value}`;
+  }
+
   return [get, acceptsFunc(set, get)];
 }
 
@@ -59,19 +69,33 @@ export function useStyleBoolean(ref, property, onValue, offValue) {
 }
 
 export function useCheckbox(ref) {
-  function get() { return ref.current.checked; }
-  function set(value) { ref.current.checked = value; }
+  function get() {
+    return ref.current.checked;
+  }
+
+  function set(value) {
+    ref.current.checked = value;
+  }
+
   return [get, acceptsFunc(set, get)];
 }
 
 export function useTextInput(ref) {
-  function get() { return ref.current.value; }
-  function set(value) { ref.current.value = value; }
+  function get() {
+    return ref.current.value;
+  }
+
+  function set(value) {
+    ref.current.value = value;
+  }
+
   return [get, acceptsFunc(set, get)];
 }
 
 export function usePropertyBoolean(ref, property, onValue, offValue) {
-  function get() { return ref.current[property]; }
+  function get() {
+    return ref.current[property];
+  }
 
   function set(value) {
     if (value) {
@@ -118,6 +142,7 @@ export function useClassBoolean(ref, onValue, offValue) {
   function get() {
     return ref.current.classList.contains(onValue);
   }
+
   function set(value) {
     if (value) {
       ref.current.classList.remove(offValue);
@@ -127,18 +152,25 @@ export function useClassBoolean(ref, onValue, offValue) {
       ref.current.classList.add(offValue);
     }
   }
+
   return [get, acceptsFunc(set, get)];
 }
 
 export function useList(ref, Component) {
-  const refs = [];
+  let refs = [];
+
   function get() {
-    return refs.filter(({ current: { parentElement } }) => parentElement);
+    refs = refs.filter((innerRef) => ref.current.contains(innerRef.current));
+    return refs;
   }
+
   function set(...args) {
     ref.current.append(
-      ...args.map((props) => <Component {...props} ref={(r) => refs.push(r)} />)
+      ...args.map((props) => (
+        <Component {...props} ref={(r) => refs.push(r)} />
+      )),
     );
   }
+
   return [get, set];
 }

@@ -1,8 +1,15 @@
 import './tailwind.css';
 
 import {
-  combineHooks, createContext, useCheckbox, useClassBoolean, useContext,
-  useIntContent, useRefs, useTextContent, useList
+  combineHooks,
+  createContext,
+  useCheckbox,
+  useClassBoolean,
+  useContext,
+  useIntContent,
+  useRefs,
+  useTextContent,
+  useList,
 } from './lib/domstatejsx';
 
 export default function App() {
@@ -14,7 +21,11 @@ export default function App() {
   const [getTodos, addTodos] = combineHooks(
     useList(todoList, Todo),
     [, (...args) => setTotal((prev) => prev + args.length)],
-    [, (...args) => setDone((prev) => prev + args.filter(({ done }) => done).length)],
+    [
+      ,
+      (...args) =>
+        setDone((prev) => prev + args.filter(({ done }) => done).length),
+    ],
     [, save],
   );
 
@@ -31,20 +42,25 @@ export default function App() {
     setDone((prev) => prev - (wasDone ? 1 : 0));
   }
 
-  function onDone(done) { setDone((prev) => prev + (done ? 1 : -1)); }
+  function onDone(done) {
+    setDone((prev) => prev + (done ? 1 : -1));
+  }
 
   function onToggleEdit(id) {
-    getTodos().forEach(({ context: { id: todoId, toggleForm } }) => toggleForm(
-      id === todoId ? null : false
-    ));
+    getTodos().forEach(({ context: { id: todoId, toggleForm } }) =>
+      toggleForm(id === todoId ? null : false),
+    );
   }
 
   function save() {
     localStorage.setItem(
       'todos',
-      JSON.stringify(getTodos().map(({ context: { getText, isDone } }) => ({
-        text: getText(), done: isDone()
-      })))
+      JSON.stringify(
+        getTodos().map(({ context: { getText, isDone } }) => ({
+          text: getText(),
+          done: isDone(),
+        })),
+      ),
     );
   }
 
@@ -59,13 +75,18 @@ export default function App() {
       <div class="max-w-[64rem] mx-auto">
         <h1 class="text-2xl">My Todo app</h1>
         <h2 class="text-xl">
-          Summary {' '}
+          Summary{' '}
           <small>
-            Total: <span ref={totalSpan}>0</span>, Done: <span ref={doneSpan}>0</span>
+            Total: <span ref={totalSpan}>0</span>, Done:{' '}
+            <span ref={doneSpan}>0</span>
           </small>
         </h2>
         <form onSubmit={handleAdd} class="border rounded-md p-4 flex gap-x-8">
-          <input name="text" autoFocus class="border border-slate-200 rounded" />
+          <input
+            name="text"
+            autoFocus
+            class="border border-slate-200 rounded"
+          />
           <button class="border px-6 rounded-md bg-blue-200">Add</button>
         </form>
         <ul ref={todoList} class="py-4" />
@@ -82,7 +103,12 @@ function Todo({ text, done = false }) {
   const [, setIsEditing] = combineHooks(
     useClassBoolean(textSpan, 'hidden', null),
     useClassBoolean(textForm, 'flex', 'hidden'),
-    [, (value) => { if (value) textInput.current.focus(); }],
+    [
+      ,
+      (value) => {
+        if (value) textInput.current.focus();
+      },
+    ],
   );
 
   const [getText, setText] = combineHooks(
@@ -94,11 +120,14 @@ function Todo({ text, done = false }) {
   const [isDone, setIsDone] = combineHooks(
     useCheckbox(doneCheckbox),
     useClassBoolean(textSpan, 'line-through', null),
-    [, (value) => {
-      const { onDone, save } = useContext(head.current, App.Context);
-      onDone(value);
-      save();
-    }],
+    [
+      ,
+      (value) => {
+        const { onDone, save } = useContext(head.current, App.Context);
+        onDone(value);
+        save();
+      },
+    ],
   );
 
   function handleDelete() {
@@ -113,7 +142,7 @@ function Todo({ text, done = false }) {
   }
 
   function toggleForm(value) {
-    setIsEditing(value === null ? ((prev) => !prev) : value);
+    setIsEditing(value === null ? (prev) => !prev : value);
   }
 
   function handleSubmitEdit(event) {
@@ -124,7 +153,10 @@ function Todo({ text, done = false }) {
   }
 
   return (
-    <Todo.Context.Provider value={{ getText, isDone, id, toggleForm }} ref={head}>
+    <Todo.Context.Provider
+      value={{ getText, isDone, id, toggleForm }}
+      ref={head}
+    >
       <li>
         <label class="flex gap-x-2 p-1 m-1 border rounded-sm">
           <div class="flex gap-x-3 px-2 border rounded-md divide-x">
@@ -140,7 +172,11 @@ function Todo({ text, done = false }) {
           <span ref={textSpan} class={done ? 'line-through' : null}>
             {text}
           </span>
-          <form onSubmit={handleSubmitEdit} ref={textForm} class="hidden gap-x-4">
+          <form
+            onSubmit={handleSubmitEdit}
+            ref={textForm}
+            class="hidden gap-x-4"
+          >
             <input
               name="text"
               value={text}

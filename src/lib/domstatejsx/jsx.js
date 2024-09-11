@@ -1,4 +1,7 @@
-import { jsx as jsxDomJsx, createElement as jsxDomCreateElement } from 'jsx-dom';
+import {
+  jsx as jsxDomJsx,
+  createElement as jsxDomCreateElement,
+} from 'jsx-dom';
 import { EXPOSE } from './context';
 
 function wrap(func) {
@@ -10,9 +13,9 @@ function wrap(func) {
 
     if (ref) {
       const result = { current };
-      const found = Object
-        .entries(current.dataset || {})
-        .find(([key]) => key.length === 39 && key.startsWith('context'));
+      const found = Object.entries(current.dataset || {}).find(
+        ([key]) => key.length === 39 && key.startsWith('context'),
+      );
       if (found) {
         const [, providerUuid] = found;
         if (providerUuid in EXPOSE) {

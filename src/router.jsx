@@ -1,6 +1,6 @@
 import { Route, Link } from './lib/domstatejsx';
 
-export default function App_() {
+export default function App() {
   return (
     <Route path="" NotFound={NotFound}>
       {() => (
@@ -46,7 +46,5 @@ function Page({ page }) {
 }
 
 function NotFound() {
-  return (
-    <h1>Page not found</h1>
-  );
+  return <h1>Page not found</h1>;
 }
