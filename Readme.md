@@ -733,6 +733,118 @@ export default function App() {
 }
 ```
 
+# Testing
+
+You can test domstatejsx components using [vitest](https://vitejs.dev/) and [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/intro).
+
+1. Install the packages:
+
+   ```sh
+   npm install --save-dev @testing-library/dom jsdom vitest
+   ```
+
+2. Add the following to `vite.config.js`:
+
+   ```javascript
+   export default {
+     // ...
+     test: {
+       globals: true,
+       environment: 'jsdom',
+     },
+   };
+   ```
+
+3. Create your test files ending in `.test.jsx`.
+
+4. Run the tests with
+
+   ```sh
+   npx vitest
+   ```
+
+   of add a test script to `package.json`
+
+   ```json
+   {
+     ...
+     "scripts": {
+       "test": "vitest"
+     }
+   }
+   ```
+
+   and run with
+
+   ```sh
+   npm run test
+   ```
+
+Lets pretend we want to test this simple component:
+
+```javascript
+// counter.jsx
+
+import { useIntContent, useRefs } from 'domstatejsx';
+
+export default function Counter() {
+  const [spanRef] = useRefs();
+  const [, setCount] = useIntContent(spanRef);
+
+  return (
+    <>
+      <div>
+        <button onClick={() => setCount((p) => p + 1)}>ClickMe</button>
+      </div>
+      <div>
+        <span ref={spanRef}>0</span>
+      </div>
+    </>
+  );
+}
+```
+
+We can do it like this:
+
+```javascript
+import { fireEvent, screen } from '@testing-library/dom';
+import { afterEach, expect } from 'vitest';
+
+import Counter from './counter';
+
+afterEach(() => {
+  document.body.replaceChildren();
+});
+
+test('Renders a counter', () => {
+  document.body.append(<Counter />);
+
+  expect(screen.queryByText('ClickMe')).not.toBeNull();
+  expect(screen.queryByText('0')).not.toBeNull();
+});
+
+test('Clicking increments counter', () => {
+  document.body.append(<Counter />);
+
+  fireEvent(screen.getByText('ClickMe'), new MouseEvent('click'));
+
+  expect(screen.queryByText('0')).toBeNull();
+  expect(screen.getByText('1')).not.toBeNull();
+});
+
+test('Clicking twice increments counter twice', () => {
+  document.body.append(<Counter />);
+
+  [...Array(2)].map(() => {
+    fireEvent(screen.getByText('ClickMe'), new MouseEvent('click'));
+  });
+
+  expect(screen.queryByText('0')).toBeNull();
+  expect(screen.queryByText('1')).toBeNull();
+  expect(screen.queryByText('2')).not.toBeNull();
+});
+```
+
 # API reference
 
 ## "Hooks"
@@ -1058,7 +1170,7 @@ is a blog post where I explain how this works.
 - [ ] Add types
 - [x] Create vite plugin for easy use
 - [ ] Look into possible memory leaks
-- [ ] Instructions on how to write tests
+- [x] Instructions on how to write tests
 
 ## Specific features
 
