@@ -1,66 +1,67 @@
-import { useForm, useRefs, useTextContent } from './lib/domstatejsx';
+import {
+  useForm,
+  usePropertyBoolean,
+  useRefs,
+  useTextContent,
+} from './lib/domstatejsx';
 
 export default function App() {
-  const [successMsg] = useRefs();
-  const [, setSuccessMsg] = useTextContent(successMsg);
+  const [submitRef, preRef] = useRefs();
+  const [, setIsLoading] = usePropertyBoolean(
+    submitRef,
+    'disabled',
+    true,
+    false,
+  );
+  const [, setPre] = useTextContent(preRef);
 
-  const {
-    handleSubmit,
-    getData,
-    register,
-    registerError,
-    registerButton,
-    reset,
-  } = useForm();
+  const { registerForm, register, registerError } = useForm({
+    onSubmit: async () => {
+      setIsLoading(true);
+      setPre('Loading...');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    },
+    onError: (errors) => {
+      setPre('Errors: ' + JSON.stringify(errors));
+    },
+    onSuccess: (data) => {
+      setPre('Success: ' + JSON.stringify(data));
+    },
+    onEnd: () => {
+      setIsLoading(false);
+    },
+  });
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit(() => setSuccessMsg(JSON.stringify(getData())))}
-      >
+      <form {...registerForm()}>
         <p>
-          Full name:{' '}
-          <input {...register('full_name', { required: true })} autoFocus />
+          Username: <input {...register('username', { required: true })} />
         </p>
-        <p style={{ color: 'red' }} {...registerError('full_name')} />
+        <p
+          style={{ display: 'none', color: 'red' }}
+          {...registerError('username')}
+        />
         <p>
-          Username:
-          <input
-            {...register('username', {
-              required: true,
-              validate: (value) => /\s/.test(value) && 'Spaces are not allowed',
-            })}
-          />
+          <>
+            Gender:{' '}
+            <select {...register('gender', { required: true })}>
+              <option />
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </>
         </p>
-        <p style={{ color: 'red' }} {...registerError('username')} />
-        <p>
-          Password:
-          <input
-            type="password"
-            {...register('password', { required: true })}
-          />
-        </p>
-        <p style={{ color: 'red' }} {...registerError('password')} />
-        <p>
-          Email:
-          <input
-            type="email"
-            {...register('email', {
-              required: true,
-              validate: (value) =>
-                !/@/.test(value) && 'This is not a valid email address',
-            })}
-          />
-        </p>
-        <ul style={{ color: 'red' }} {...registerError('email')} />
-        <p>
-          <button {...registerButton()}>Save</button>
-          <button type="button" onClick={() => reset()}>
-            Reset
-          </button>
-        </p>
+        <p
+          style={{ display: 'none', color: 'red' }}
+          {...registerError('gender')}
+        />
+        <button ref={submitRef}>Submit</button>
       </form>
-      <pre ref={successMsg} />
+      <div>
+        <pre ref={preRef} />
+      </div>
     </>
   );
 }

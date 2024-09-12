@@ -3,154 +3,152 @@
  *  - other components
  * */
 
-class Form {
-  constructor({ when = 'onChange', defaultValues = {} } = {}) {
-    this.when = when;
-    this.defaultValues = defaultValues;
+export function useForm({
+  when = 'onChange',
+  onSubmit,
+  onSuccess = () => { },
+  onError = () => { },
+  onEnd = () => { },
+  fields,
+  validate = () => { },
+  defaultValues = null,
+}) {
+  const fieldRefs = {};
+  const fieldErrorRefs = {};
+  const formErrorRefs = [];
+  const fieldData = { ...fields };
 
-    this.fieldRefs = {};
-    this.errorRefs = {};
-    this.buttonRef = null;
-    this.validations = {};
+  let formValidate = validate;
 
-    setTimeout(() => this.reset(), 0);
+  function getData() {
+    return Object.fromEntries(
+      Object.entries(fieldRefs).map(([name, ref]) => [name, ref.current.value]),
+    );
   }
 
-  register = (
-    name,
-    { required = false, maxLength = null, validate = [] } = {},
-  ) => {
-    if (!(name in this.defaultValues)) {
-      this.defaultValues[name] = '';
-    }
+  function getErrors() {
+    const result = Object.fromEntries(
+      Object.entries(fieldErrorRefs)
+        .map(([name, ref]) => [name, ref.current.innerText])
+        .filter(([_, text]) => !!text),
+    );
+    const formErrorRef = formErrorRefs.find((ref) => !!ref.current.innerText);
+    if (formErrorRef) result.__all__ = formErrorRef.current.innerText;
 
-    this.validations[name] = [];
-    if (required) {
-      this.validations[name].push(
-        (value) => !value && 'This field is required',
-      );
+    return result;
+  }
+
+  function _validateField(name) {
+    const value = fieldRefs[name].current.value;
+    try {
+      if (fieldData[name].required && !value) {
+        throw new Error('This field is required');
+      }
+      fieldData[name].validate(value);
+      if (name in fieldErrorRefs) {
+        fieldErrorRefs[name].current.innerText = '';
+        fieldErrorRefs[name].current.style.setProperty('display', 'none');
+      }
+      return true;
+    } catch (e) {
+      if (name in fieldErrorRefs) {
+        fieldErrorRefs[name].current.innerText = e.message;
+        fieldErrorRefs[name].current.style.removeProperty('display');
+      }
+      return false;
     }
-    if (maxLength !== null) {
-      this.validations[name].push(
-        (value) =>
-          value.length > maxLength &&
-          `Input cannot exceed ${maxLength} characters`,
-      );
+  }
+
+  function _validate() {
+    let validated = !Object.keys(fieldRefs).filter(
+      (name) => !_validateField(name),
+    ).length;
+    try {
+      formValidate(getData());
+      formErrorRefs.forEach((ref) => {
+        ref.current.innerText = '';
+        ref.current.style.setProperty('display', 'none');
+      });
+    } catch (e) {
+      formErrorRefs.forEach((ref) => {
+        ref.current.innerText = e.message;
+        ref.current.style.removeProperty('display');
+      });
+      validated = false;
     }
-    if (validate instanceof Array) {
-      this.validations[name].push(...validate);
-    } else {
-      this.validations[name].push(validate);
-    }
+    return validated;
+  }
+
+  function registerForm({ validate = null } = {}) {
+    if (validate !== null) formValidate = validate;
+
+    setTimeout(() => {
+      if (defaultValues === null) {
+        defaultValues = getData();
+      }
+      reset();
+    }, 0);
 
     return {
-      ref: ({ current }) => {
-        this.fieldRefs[name] = current;
+      onSubmit: async (event) => {
+        event.preventDefault();
+
+        if (!_validate()) {
+          onError(getErrors());
+          return;
+        }
+
+        try {
+          await onSubmit(getData());
+          formErrorRefs.forEach((ref) => {
+            ref.current.innerText = '';
+            ref.current.style.setProperty('display', 'none');
+          });
+          onSuccess(getData());
+        } catch (e) {
+          formErrorRefs.forEach((ref) => {
+            ref.current.innerText = e.message;
+            ref.current.style.removeProperty('display');
+          });
+          onError(getErrors());
+        }
+        onEnd(getData(), getErrors());
       },
-      [this.when]: (event) => {
-        this.validateField(name, event.target.value);
-        if (this.buttonRef !== null) {
-          this.buttonRef.disabled = this.hasErrors();
+    };
+  }
+
+  function register(name, { required = null, validate = null } = {}) {
+    fieldData[name] ??= {};
+    if (required !== null) fieldData[name].required = required;
+    if (validate !== null) fieldData[name].validate = validate;
+    if (!('required' in fieldData[name])) fieldData[name].required = false;
+    if (!('validate' in fieldData[name])) fieldData[name].validate = () => { };
+
+    return {
+      ref: (r) => {
+        fieldRefs[name] = r;
+      },
+      [when]: () => _validateField(name),
+    };
+  }
+
+  function registerError(name = null) {
+    return {
+      ref: (r) => {
+        if (name !== null) {
+          fieldErrorRefs[name] = r;
+        } else {
+          formErrorRefs.push(r);
         }
       },
     };
-  };
-
-  registerError = (name) => {
-    return {
-      ref: ({ current }) => {
-        this.errorRefs[name] = current;
-      },
-    };
-  };
-
-  registerButton = () => {
-    return {
-      ref: ({ current }) => {
-        this.buttonRef = current;
-      },
-    };
-  };
-
-  handleSubmit = (func) => {
-    return (event) => {
-      event.preventDefault();
-      this.validateAll();
-      if (!this.hasErrors()) {
-        func(this.getData());
-      } else {
-        if (this.buttonRef !== null) {
-          this.buttonRef.disabled = this.hasErrors();
-        }
-      }
-    };
-  };
-
-  reset = () => {
-    Object.entries(this.defaultValues).forEach(([name, value]) => {
-      if (name in this.fieldRefs) {
-        this.fieldRefs[name].value = value;
-      }
-    });
-    Object.values(this.errorRefs).forEach((element) => {
-      element.style.setProperty('display', 'none');
-      element.innerHTML = '';
-    });
-  };
-
-  getData = () => {
-    return Object.fromEntries(
-      Object.entries(this.fieldRefs).map(([name, ref]) => [name, ref.value]),
-    );
-  };
-
-  getErrors = () => {
-    return Object.fromEntries(
-      Object.entries(this.errorRefs).map(([name, element]) => [
-        name,
-        element.tagName.toLowerCase() === 'ul'
-          ? [...element.children].map((li) => li.textContent)
-          : element.textContent
-            ? [element.textContent]
-            : [],
-      ]),
-    );
-  };
-
-  hasErrors = () => {
-    return !!Object.values(this.getErrors()).find(
-      (errorlist) => errorlist.length,
-    );
-  };
-
-  validateField(name, value) {
-    if (!(name in this.errorRefs)) return;
-    const errors = this.validations[name]
-      .map((validation) => validation(value))
-      .filter((error) => error);
-    const errorElement = this.errorRefs[name];
-    if (errors.length) {
-      errorElement.style.removeProperty('display');
-      if (errorElement.tagName.toLowerCase() === 'ul') {
-        errorElement.replaceChildren(
-          ...errors.map((error) => <li>{error}</li>),
-        );
-      } else {
-        this.errorRefs[name].textContent = errors.join(', ');
-      }
-    } else {
-      errorElement.style.setProperty('display', 'none');
-      errorElement.innerHTML = '';
-    }
   }
 
-  validateAll() {
-    Object.entries(this.fieldRefs).forEach(([name, element]) =>
-      this.validateField(name, element.value),
-    );
+  function reset() {
+    Object.entries(fieldRefs).forEach(([name, ref]) => {
+      ref.current.value = defaultValues[name];
+    });
   }
-}
 
-export function useForm(props) {
-  return new Form(props);
+  return { registerForm, register, registerError, reset, getData, getErrors };
 }
