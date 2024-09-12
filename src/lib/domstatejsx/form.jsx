@@ -5,14 +5,14 @@
 
 export function useForm({
   when = 'onChange',
-  onSubmit,
+  onSubmit = async () => { },
   onSuccess = () => { },
   onError = () => { },
   onEnd = () => { },
   fields,
   validate = () => { },
   defaultValues = null,
-}) {
+} = {}) {
   const fieldRefs = {};
   const fieldErrorRefs = {};
   const formErrorRefs = [];
@@ -20,9 +20,28 @@ export function useForm({
 
   let formValidate = validate;
 
+  function _getFieldData(name) {
+    const context = fieldRefs[name].context || {};
+    if ('get' in context && 'set' in context) {
+      return context.get();
+    } else {
+      return fieldRefs[name].current.value;
+    }
+  }
+  function _setFieldData(name, value) {
+    const context = fieldRefs[name].context || {};
+    if ('get' in context && 'set' in context) {
+      context.set(value);
+    } else {
+      fieldRefs[name].current.value = value;
+    }
+  }
+
   function getData() {
     return Object.fromEntries(
-      Object.entries(fieldRefs).map(([name, ref]) => [name, ref.current.value]),
+      Object.keys(fieldRefs).map((name) => {
+        return [name, _getFieldData(name)];
+      }),
     );
   }
 
@@ -39,7 +58,7 @@ export function useForm({
   }
 
   function _validateField(name) {
-    const value = fieldRefs[name].current.value;
+    const value = _getFieldData(name);
     try {
       if (fieldData[name].required && !value) {
         throw new Error('This field is required');
@@ -99,12 +118,13 @@ export function useForm({
         }
 
         try {
-          await onSubmit(getData());
+          const data = getData();
+          const result = await onSubmit(data);
           formErrorRefs.forEach((ref) => {
             ref.current.innerText = '';
             ref.current.style.setProperty('display', 'none');
           });
-          onSuccess(getData());
+          onSuccess(data, result);
         } catch (e) {
           formErrorRefs.forEach((ref) => {
             ref.current.innerText = e.message;
@@ -145,8 +165,8 @@ export function useForm({
   }
 
   function reset() {
-    Object.entries(fieldRefs).forEach(([name, ref]) => {
-      ref.current.value = defaultValues[name];
+    Object.keys(fieldRefs).forEach((name) => {
+      _setFieldData(name, defaultValues[name]);
     });
   }
 

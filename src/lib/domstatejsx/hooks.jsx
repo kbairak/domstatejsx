@@ -184,5 +184,5 @@ export function useControlledInput(ref) {
     return ref.context.set(value);
   }
 
-  return [get, set];
+  return [get, acceptsFunc(set, get)];
 }

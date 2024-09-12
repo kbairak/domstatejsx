@@ -1,67 +1,92 @@
 import {
+  createContext,
   useForm,
-  usePropertyBoolean,
   useRefs,
   useTextContent,
 } from './lib/domstatejsx';
 
 export default function App() {
-  const [submitRef, preRef] = useRefs();
-  const [, setIsLoading] = usePropertyBoolean(
-    submitRef,
-    'disabled',
-    true,
-    false,
-  );
+  const [preRef] = useRefs();
   const [, setPre] = useTextContent(preRef);
 
   const { registerForm, register, registerError } = useForm({
-    onSubmit: async () => {
-      setIsLoading(true);
-      setPre('Loading...');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    },
-    onError: (errors) => {
-      setPre('Errors: ' + JSON.stringify(errors));
-    },
-    onSuccess: (data) => {
-      setPre('Success: ' + JSON.stringify(data));
-    },
-    onEnd: () => {
-      setIsLoading(false);
-    },
+    onSuccess: (data) => setPre('Success: ' + JSON.stringify(data, null, 2)),
+    onError: (errors) => setPre('Errors: ' + JSON.stringify(errors, null, 2)),
   });
 
   return (
     <>
-      <form {...registerForm()}>
+      <form
+        {...registerForm({
+          validate: ({ username, gender }) => {
+            if (username === 'Bill' && gender === 'Female') {
+              throw new Error("Bill is a boy's name");
+            }
+          },
+        })}
+      >
+        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
         <p>
-          Username: <input {...register('username', { required: true })} />
+          Username:{' '}
+          <input autoFocus {...register('username', { required: true })} />
         </p>
         <p
           style={{ display: 'none', color: 'red' }}
           {...registerError('username')}
         />
         <p>
-          <>
-            Gender:{' '}
-            <select {...register('gender', { required: true })}>
-              <option />
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </>
+          Gender:{' '}
+          <Radio
+            options={['Male', 'Female']}
+            {...register('gender', { required: true })}
+          />
         </p>
         <p
           style={{ display: 'none', color: 'red' }}
           {...registerError('gender')}
         />
-        <button ref={submitRef}>Submit</button>
+        <p>
+          <button>Submit</button>
+        </p>
       </form>
-      <div>
+      <p>
         <pre ref={preRef} />
-      </div>
+      </p>
     </>
   );
 }
+
+function Radio({ onChange, options }) {
+  const refs = [];
+  const ref = (r) => refs.push(r);
+
+  function get() {
+    const checkedRadio = refs.find((ref) => ref.current.checked);
+    return checkedRadio?.current?.nextSibling?.textContent || null;
+  }
+
+  function set(value) {
+    refs.forEach(({ current }) => (current.checked = false));
+    const targetRadio = refs.find(
+      (ref) => ref.current.nextSibling.textContent === value,
+    );
+    if (targetRadio) targetRadio.current.checked = true;
+  }
+
+  function handleClick(option) {
+    set(option);
+    onChange(option);
+  }
+
+  return (
+    <Radio.Context.Provider value={{ get, set }}>
+      {options.map((option) => (
+        <label>
+          <input type="radio" onClick={() => handleClick(option)} ref={ref} />
+          {option}
+        </label>
+      ))}
+    </Radio.Context.Provider>
+  );
+}
+Radio.Context = createContext();

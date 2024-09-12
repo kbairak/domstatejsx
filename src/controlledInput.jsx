@@ -34,9 +34,7 @@ export default function App() {
 
 function Radio({ defaultValue = undefined, onChange, options }) {
   const refs = [];
-  function ref(r) {
-    refs.push(r);
-  }
+  const ref = (r) => refs.push(r);
 
   function get() {
     return refs.find((ref) => ref.current.checked).current.nextSibling
