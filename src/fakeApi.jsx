@@ -1,12 +1,11 @@
 import {
+  useForm,
+  useList,
+  useMutation,
   usePropertyBoolean,
   useQuery,
-  useStyleBoolean,
-  combineHooks,
   useRefs,
-  useMutation,
-  useErrorMessage,
-  useTextInput,
+  useStyleBoolean,
 } from './lib/domstatejsx';
 
 const fakeApi = {
@@ -16,81 +15,82 @@ const fakeApi = {
     return fakeApi.messages;
   },
   post: async (newMessage) => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
     if (newMessage.indexOf('@') === -1) {
       throw new Error('Invalid email address');
     }
-    await new Promise((resolve) => setTimeout(resolve, 400));
     fakeApi.messages.push(newMessage);
   },
 };
 
 export default function App() {
-  const [
-    errorParagraph,
-    newMessageInput,
-    newMessageButton,
-    fetchSpinner,
-    messageList,
-  ] = useRefs();
+  const [loadingRef, ulRef, submitRef] = useRefs();
 
-  const [getNewMessageInput, setNewmessageInput] =
-    useTextInput(newMessageInput);
-  const [, setFetchLoading] = combineHooks(
-    useStyleBoolean(messageList, 'display', 'none', null),
-    useStyleBoolean(fetchSpinner, 'display', null, 'none'),
+  const [, setQueryIsLoading] = useStyleBoolean(
+    loadingRef,
+    'display',
+    null,
+    'none',
   );
-  const [, setMutationLoading] = usePropertyBoolean(
-    newMessageButton,
+  const [, , resetMessages] = useList(ulRef, ({ message }) => (
+    <li>{message}</li>
+  ));
+  const [, setFormIsLoading] = usePropertyBoolean(
+    submitRef,
     'disabled',
     true,
     false,
   );
-  const [, setErrorMessage] = useErrorMessage(errorParagraph);
 
-  const { fetch } = useQuery({
+  const { refetch } = useQuery({
+    onStart: () => {
+      setQueryIsLoading(true);
+    },
     queryFn: fakeApi.get,
-    onStart: () => setFetchLoading(true),
-    onEnd: () => setFetchLoading(false),
-    onSuccess: (data) =>
-      messageList.current.replaceChildren(
-        ...data.map((message) => <li>{message}</li>),
-      ),
+    onSuccess: (messages) => {
+      resetMessages(...messages.map((message) => ({ message })));
+    },
+    onEnd: () => setQueryIsLoading(false),
   });
 
   const { mutate } = useMutation({
     mutationFn: fakeApi.post,
-    onStart: () => setMutationLoading(true),
-    onEnd: () => setMutationLoading(false),
     onSuccess: () => {
-      setErrorMessage(null);
-      setNewmessageInput('');
-      fetch();
+      reset();
+      refetch();
     },
-    onError: (error) => setErrorMessage(error.message),
   });
 
-  async function handleNew(event) {
-    event.preventDefault();
-    if (!getNewMessageInput()) {
-      setErrorMessage('This field is required');
-      return;
-    }
-    await mutate(getNewMessageInput());
-  }
+  const { registerForm, register, registerError, reset } = useForm({
+    onSubmit: async ({ message }) => {
+      setFormIsLoading(true);
+      await mutate(message);
+    },
+    onEnd: () => setFormIsLoading(false),
+  });
 
   return (
     <>
-      <form onSubmit={handleNew}>
+      <p style={{ display: 'none' }} ref={loadingRef}>
+        Loading...
+      </p>
+      <ul ref={ulRef} />
+      <p>
+        <button onClick={refetch}>Refetch</button>
+      </p>
+      <form {...registerForm()}>
         <p>
-          New message: <input autoFocus ref={newMessageInput} />
+          Message: <input {...register('message', { required: true })} />
         </p>
-        <p style={{ display: 'none', color: 'red' }} ref={errorParagraph} />
+        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
+        <p
+          style={{ display: 'none', color: 'red' }}
+          {...registerError('message')}
+        />
         <p>
-          <button ref={newMessageButton}>Save</button>
+          <button ref={submitRef}>Submit</button>
         </p>
       </form>
-      <p ref={fetchSpinner}>Loading...</p>
-      <ul style={{ display: 'none' }} ref={messageList} />
     </>
   );
 }

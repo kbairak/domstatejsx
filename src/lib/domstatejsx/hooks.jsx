@@ -172,7 +172,16 @@ export function useList(ref, Component) {
     );
   }
 
-  return [get, set];
+  function reset(...args) {
+    refs = [];
+    ref.current.replaceChildren(
+      ...args.map((props) => (
+        <Component {...props} ref={(r) => refs.push(r)} />
+      )),
+    );
+  }
+
+  return [get, set, reset];
 }
 
 export function useControlledInput(ref) {
