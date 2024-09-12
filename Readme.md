@@ -733,6 +733,196 @@ export default function App() {
 }
 ```
 
+### Controlled Inputs
+
+Writing controlled inputs is a bit harder than doing so in React. A _controlled input_
+is an input element that can be manipulated by the browser and **also** by external
+code. The recommended way to do so in domstatejsx is:
+
+1. Write a component that accepts an `onChange` callback.
+
+   ```javascript
+   function Radio({ onChange, options }) {
+     return (
+       <>
+         {options.map((option) => (
+           <label>
+             <input type="radio" />
+             {option}
+           </label>
+         ))}
+       </>
+     );
+   }
+   ```
+
+2. Have this component expose `get` and `set` functions with context
+
+   ```diff
+    function Radio({ onChange, options }) {
+   +  const refs = []
+   +  const ref = (r) => refs.push(r);
+
+   +  function get() {
+   +    // Remember, our "state" lives in the DOM
+   +    return refs.find(
+   +      ({ current: { checked } }) => checked,
+   +    ).current.nextSibling.textContent;
+   +  }
+
+   + function set(value) {
+   +   refs.forEach(({ current }) => { current.checked = false; });
+   +   refs.find(
+   +     ({ current }) => current.nextSibling.textContent === value,
+   +   ).current.checked = true;
+   + }
+
+      return (
+   -    <>
+   +    <Radio.Context.Provider value={{ get, set }}>
+         {options.map((option) => (
+           <label>
+   -         <input type="radio" />
+   +         <input type="radio" ref={ref} />
+             {option}
+           </label>
+         ))}
+   -    </>
+   +    </Radio.Context.Provider>
+      );
+    }
+   +Radio.Context = createContext();
+   ```
+
+3. From inside a component, invoke `onChange` when the value is changed by the browser
+
+   ```diff
+    function Radio({ onChange, options }) {
+      const refs = []
+      const ref = (r) => refs.push(r);
+
+      function get() {
+        // Remember, our "state" lives in the DOM
+        return refs.find(
+          ({ current: { checked } }) => checked,
+        ).current.nextSibling.textContent;
+      }
+
+     function set(value) {
+       refs.forEach(({ current }) => { current.checked = false; });
+       refs.find(
+         ({ current }) => current.nextSibling.textContent === value,
+       ).current.checked = true;
+     }
+
+   + function handleClick(option) {
+   +   set(option);  // Do this in order to reset the checked status of other radios
+   +   onChange(option);
+   + }
+
+      return (
+        <Radio.Context.Provider value={{ get, set }}>
+         {options.map((option) => (
+           <label>
+   -         <input type="radio" ref={ref} />
+   +         <input type="radio" onClick={() => handleClick(option)} ref={ref} />
+             {option}
+           </label>
+         ))}
+        </Radio.Context.Provider>
+      );
+    }
+   +Radio.Context = createContext();
+   ```
+
+4. Render this component and keep a ref pointing to it
+
+   ```javascript
+   export default function App() {
+     const [inputRef] = useRefs();
+
+     return (
+       <>
+         <Radio options={['Zero', 'One', 'Two', 'Three']} ref={inputRef} />
+       </>
+     );
+   }
+   ```
+
+5. Use the `useControlledInput` hook on this ref
+
+   ```diff
+   +import { useControlledInput } from 'domstatejsx';
+
+    export default function App() {
+      const [inputRef] = useRefs();
+
+   +  const [get, set] = useControlledInput(inputRef)
+
+      return (
+        <>
+          <Radio
+            options={['Zero', 'One', 'Two', 'Three']}
+            ref={inputRef}
+          />
+        </>
+      );
+    }
+   ```
+
+6. Make the `onChange` callback call the setter returned by the hook
+
+   ```diff
+    export default function App() {
+      const [inputRef] = useRefs();
+
+      const [get, set] = useControlledInput(inputRef)
+
+      return (
+        <>
+          <Radio
+            options={['Zero', 'One', 'Two', 'Three']}
+   +        onChange={set}
+            ref={inputRef}
+          />
+        </>
+      );
+    }
+   ```
+
+Now we can control this input from outside:
+
+```javascript
+export default function App() {
+  const [inputRef, spanRef] = useRefs();
+
+  const [, set] = combineHooks(
+    useControlledInput(inputRef),
+    useTextContent(spanRef),
+  );
+
+  return (
+    <>
+      <Radio
+        defaultValue="Three"
+        onChange={set}
+        options={['Zero', 'One', 'Two', 'Three']}
+        ref={inputRef}
+      />
+      <p>
+        <button onClick={() => set('Two')}>Select "two"</button>
+      </p>
+      <p>
+        Selected Value: <span ref={spanRef} />
+      </p>
+    </>
+  );
+}
+```
+
+In this example, when the selection is changed, the 'span' is updated to reflect the
+change. We can also change the radio's selection by clicking the button.
+
 # Testing
 
 You can test domstatejsx components using [vitest](https://vitejs.dev/) and [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/intro).

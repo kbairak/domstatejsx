@@ -12,6 +12,7 @@ export {
   useErrorMessage,
   useClassBoolean,
   useList,
+  useControlledInput,
 } from './hooks';
 export { createContext, useContext, findUp } from './context';
 export { useQuery, useMutation } from './query';

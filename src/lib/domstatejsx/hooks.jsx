@@ -174,3 +174,15 @@ export function useList(ref, Component) {
 
   return [get, set];
 }
+
+export function useControlledInput(ref) {
+  function get() {
+    return ref.context.get();
+  }
+
+  function set(value) {
+    return ref.context.set(value);
+  }
+
+  return [get, set];
+}
