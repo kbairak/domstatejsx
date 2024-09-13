@@ -61,8 +61,8 @@ function Radio({ onChange, options }) {
   const ref = (r) => refs.push(r);
 
   function get() {
-    const checkedRadio = refs.find((ref) => ref.current.checked);
-    return checkedRadio?.current?.nextSibling?.textContent || null;
+    return refs.find((ref) => ref.current.checked)?.current?.nextSibling
+      ?.textContent;
   }
 
   function set(value) {
