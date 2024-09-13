@@ -66,11 +66,9 @@ function Radio({ onChange, options }) {
   }
 
   function set(value) {
-    refs.forEach(({ current }) => (current.checked = false));
-    const targetRadio = refs.find(
-      (ref) => ref.current.nextSibling.textContent === value,
-    );
-    if (targetRadio) targetRadio.current.checked = true;
+    refs.forEach(({ current }) => {
+      current.checked = current.nextSibling.textContent === value;
+    });
   }
 
   function handleClick(option) {

@@ -5,12 +5,13 @@
 
 export function useForm({
   when = 'onChange',
+  onStart = async () => { },
   onSubmit = async () => { },
-  onSuccess = () => { },
-  onError = () => { },
-  onEnd = () => { },
+  onSuccess = async () => { },
+  onError = async () => { },
+  onEnd = async () => { },
   fields,
-  validate = () => { },
+  validate = async () => { },
   defaultValues = null,
 } = {}) {
   const fieldRefs = {};
@@ -18,9 +19,9 @@ export function useForm({
   const formErrorRefs = [];
   const fieldData = { ...fields };
 
-  let formValidate = validate;
+  let _formValidate = validate;
 
-  function _getFieldData(name) {
+  function _getFieldValue(name) {
     const context = fieldRefs[name].context || {};
     if ('get' in context && 'set' in context) {
       return context.get();
@@ -40,7 +41,7 @@ export function useForm({
   function getData() {
     return Object.fromEntries(
       Object.keys(fieldRefs).map((name) => {
-        return [name, _getFieldData(name)];
+        return [name, _getFieldValue(name)];
       }),
     );
   }
@@ -57,13 +58,13 @@ export function useForm({
     return result;
   }
 
-  function _validateField(name) {
-    const value = _getFieldData(name);
+  async function _validateField(name) {
+    const value = _getFieldValue(name);
     try {
       if (fieldData[name].required && !value) {
         throw new Error('This field is required');
       }
-      fieldData[name].validate(value);
+      await fieldData[name].validate(value);
       if (name in fieldErrorRefs) {
         fieldErrorRefs[name].current.innerText = '';
         fieldErrorRefs[name].current.style.setProperty('display', 'none');
@@ -78,12 +79,13 @@ export function useForm({
     }
   }
 
-  function _validate() {
-    let validated = !Object.keys(fieldRefs).filter(
-      (name) => !_validateField(name),
-    ).length;
+  async function _validate() {
+    let validated = !(
+      await Promise.all(Object.keys(fieldRefs).map(_validateField))
+    ).filter((r) => !r).length;
+
     try {
-      formValidate(getData());
+      await _formValidate(getData());
       formErrorRefs.forEach((ref) => {
         ref.current.innerText = '';
         ref.current.style.setProperty('display', 'none');
@@ -99,7 +101,7 @@ export function useForm({
   }
 
   function registerForm({ validate = null } = {}) {
-    if (validate !== null) formValidate = validate;
+    if (validate !== null) _formValidate = validate;
 
     setTimeout(() => {
       if (defaultValues === null) {
@@ -112,8 +114,10 @@ export function useForm({
       onSubmit: async (event) => {
         event.preventDefault();
 
-        if (!_validate()) {
-          onError(getErrors());
+        await onStart(getData());
+
+        if (!(await _validate())) {
+          await onError(getErrors());
           return;
         }
 
@@ -124,15 +128,15 @@ export function useForm({
             ref.current.innerText = '';
             ref.current.style.setProperty('display', 'none');
           });
-          onSuccess(data, result);
+          await onSuccess(data, result);
         } catch (e) {
           formErrorRefs.forEach((ref) => {
             ref.current.innerText = e.message;
             ref.current.style.removeProperty('display');
           });
-          onError(getErrors());
+          await onError(getErrors());
         }
-        onEnd(getData(), getErrors());
+        await onEnd(getData(), getErrors());
       },
     };
   }
@@ -142,13 +146,14 @@ export function useForm({
     if (required !== null) fieldData[name].required = required;
     if (validate !== null) fieldData[name].validate = validate;
     if (!('required' in fieldData[name])) fieldData[name].required = false;
-    if (!('validate' in fieldData[name])) fieldData[name].validate = () => { };
+    if (!('validate' in fieldData[name]))
+      fieldData[name].validate = async () => { };
 
     return {
       ref: (r) => {
         fieldRefs[name] = r;
       },
-      [when]: () => _validateField(name),
+      [when]: async () => _validateField(name),
     };
   }
 
