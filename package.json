@@ -1,6 +1,6 @@
 {
   "name": "domstatejsx",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "domstatejsx": "^0.0.17",
     "jsx-dom": "^8.1.2",
     "lodash": "^4.17.21"
   },
@@ -41,8 +42,9 @@
     "./jsx-dev-runtime": "./dist/jsx-dev-runtime.js",
     "./vite-plugin": "./dist/vite-plugin.js"
   },
-  "types": "src/lib/dostatejsx/index.d.ts",
+  "types": "types.d.ts",
   "files": [
-    "dist/*"
+    "dist/*",
+    "types.d.ts"
   ]
 }
