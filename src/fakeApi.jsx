@@ -43,9 +43,7 @@ export default function App() {
   );
 
   const { refetch } = useQuery({
-    onStart: () => {
-      setQueryIsLoading(true);
-    },
+    onStart: () => setQueryIsLoading(true),
     queryFn: fakeApi.get,
     onSuccess: (messages) => {
       resetMessages(...messages.map((message) => ({ message })));
@@ -64,7 +62,7 @@ export default function App() {
   const { registerForm, register, registerError, reset } = useForm({
     onSubmit: async ({ message }) => {
       setFormIsLoading(true);
-      await mutate(message);
+      mutate(message);
     },
     onEnd: () => setFormIsLoading(false),
   });

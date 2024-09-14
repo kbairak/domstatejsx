@@ -1,6 +1,6 @@
 export const EXPOSE = {};
 
-class Context {
+export class Context {
   constructor(defaultValue) {
     this.datasetKey = 'context' + crypto.randomUUID().replaceAll('-', '');
     this.defaultValue = defaultValue;
@@ -38,7 +38,7 @@ class Context {
   }
 }
 
-export function createContext(defaultValue) {
+export function createContext(defaultValue = null) {
   return new Context(defaultValue);
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "domstatejsx",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -41,6 +41,7 @@
     "./jsx-dev-runtime": "./dist/jsx-dev-runtime.js",
     "./vite-plugin": "./dist/vite-plugin.js"
   },
+  "types": "src/lib/dostatejsx/index.d.ts",
   "files": [
     "dist/*"
   ]

@@ -1,3 +1,4 @@
+/// <reference path="./index.d.ts" />
 export { Fragment } from 'jsx-dom';
 export { jsx, jsx as jsxs, jsx as jsxDEV, createElement } from './jsx';
 export {
@@ -14,7 +15,7 @@ export {
   useList,
   useControlledInput,
 } from './hooks';
-export { createContext, useContext, findUp } from './context';
+export { createContext, useContext } from './context';
 export { useQuery, useMutation } from './query';
 export { useForm } from './form';
 export { Route, Link } from './router';

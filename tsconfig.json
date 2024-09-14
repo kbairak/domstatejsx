@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "lib": ["es2021", "dom"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "jsxImportSource": "./src/lib/domstatejsx",
+    "paths": { "domstatejsx": ["./src/lib/domstatejsx"] },
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  }
+}
