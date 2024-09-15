@@ -1,5 +1,5 @@
 export function* useRefs() {
-  for (; ;) yield {};
+  for (;;) yield {};
 }
 
 export function combineHooks(...hooks) {
@@ -13,7 +13,7 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function(valueOrFunc) {
+  return function (valueOrFunc) {
     const value =
       valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
@@ -157,14 +157,13 @@ export function useClassBoolean(ref, onValue, offValue) {
 }
 
 export function useList(ref, Component) {
-  let refs = [];
+  const refs = [];
 
   function get() {
-    refs = refs.filter((innerRef) => ref.current.contains(innerRef.current));
     return refs;
   }
 
-  function set(...args) {
+  function add(...args) {
     ref.current.append(
       ...args.map((props) => (
         <Component {...props} ref={(r) => refs.push(r)} />
@@ -173,15 +172,21 @@ export function useList(ref, Component) {
   }
 
   function reset(...args) {
-    refs = [];
-    ref.current.replaceChildren(
-      ...args.map((props) => (
-        <Component {...props} ref={(r) => refs.push(r)} />
-      )),
-    );
+    refs.forEach(({ current }) => current.remove());
+    add(...args);
   }
 
-  return [get, set, reset];
+  const observer = new MutationObserver((records) => {
+    records.forEach((record) => {
+      record.removedNodes.forEach((node) => {
+        const index = refs.findIndex(({ current }) => current === node);
+        refs.splice(index, 1);
+      });
+    });
+  });
+  setTimeout(() => observer.observe(ref.current, { childList: true }), 0);
+
+  return [get, add, reset];
 }
 
 export function useControlledInput(ref) {

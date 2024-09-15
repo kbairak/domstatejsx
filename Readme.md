@@ -1370,8 +1370,8 @@ General:
 
 Forms:
 
-- [ ] Forms should be able to work with `<select>` elements
-- [ ] Forms should be able to work with custom input components
+- [x] Forms should be able to work with `<select>` elements
+- [x] Forms should be able to work with custom input components
 
 Routing:
 
