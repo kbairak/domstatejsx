@@ -17,19 +17,33 @@ export default function App() {
 
   const [, setPre] = useTextContent(preRef);
 
-  // Use flex to split screen horizontaly fifty-fifty
   return (
-    <div class="flex">
-      <div class="w-1/2">
-        <JsonEdit
-          onChange={(value) => setPre(JSON.stringify(value, null, 2))}
-          defaultValue={null}
-        />
-      </div>
-      <div class="w-1/2">
-        <pre ref={preRef}>null</pre>
-      </div>
-    </div>
+    <>
+      <JsonEdit
+        onChange={(value) => setPre(JSON.stringify(value, null, 2))}
+        defaultValue={{
+          source_string: 'Hello world',
+          source_language: 'en',
+          target_language: 'el',
+          glossary: [
+            {
+              source: 'world',
+              pos: 'noun',
+              translation: 'κόσμος',
+            },
+          ],
+          tm: [
+            {
+              source: 'Hello Bill',
+              translation: 'Καλημέρα Bill',
+            },
+          ],
+          industry: 'fintech',
+          target_audience: 'young people',
+        }}
+      />
+      <pre ref={preRef}>null</pre>
+    </>
   );
 }
 
@@ -44,6 +58,8 @@ function JsonEdit({ onChange, defaultValue = null }) {
     stringInputRef,
     arrayDivRef,
     arrayListRef,
+    objectDivRef,
+    objectListRef,
   ] = useRefs();
 
   const [getType] = useTextInput(typeSelectRef);
@@ -54,6 +70,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
     else if (type === 'number') return getNumber();
     else if (type === 'string') return getString();
     else if (type === 'array') return getArray();
+    else if (type === 'object') return getObject();
   }
 
   function toggleVisible(type) {
@@ -63,6 +80,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
       ['number', setNumberVisible],
       ['string', setStringVisible],
       ['array', setArrayVisible],
+      ['object', setObjectVisible],
     ].forEach(([t, setVisible]) => {
       setVisible(t === type);
     });
@@ -84,6 +102,9 @@ function JsonEdit({ onChange, defaultValue = null }) {
     } else if (type === 'array') {
       setArray([]);
       onChange([]);
+    } else if (type === 'object') {
+      setObject({});
+      onChange({});
     }
     toggleVisible(type);
   }
@@ -124,9 +145,40 @@ function JsonEdit({ onChange, defaultValue = null }) {
     addArrayItems({ defaultValue: item, onChange: () => onChange(getArray()) });
     onChange(getArray());
   }
-
   if (Array.isArray(defaultValue)) {
     setTimeout(() => setArray(defaultValue), 0);
+  }
+
+  // Object
+  const [, setObjectVisible] = useClassBoolean(objectDivRef, null, 'hidden');
+  const [getObjectRefs, addObjectItems, resetObjectItems] = useList(
+    objectListRef,
+    ObjectItem,
+  );
+  function getObject() {
+    return Object.fromEntries(
+      getObjectRefs().map(({ context: { get } }) => get()),
+    );
+  }
+  function setObject(value) {
+    resetObjectItems(
+      ...Object.entries(value).map(([key, item]) => ({
+        defaultKey: key,
+        defaultValue: item,
+        onChange: () => onChange(getObject()),
+      })),
+    );
+  }
+  function handleAddItemToObject(key, value) {
+    addObjectItems({
+      defaultKey: key,
+      defaultValue: value,
+      onChange: () => onChange(getObject()),
+    });
+    onChange(getObject());
+  }
+  if (isObject(defaultValue)) {
+    setTimeout(() => setObject(defaultValue), 0);
   }
 
   return (
@@ -156,6 +208,9 @@ function JsonEdit({ onChange, defaultValue = null }) {
             </option>
             <option value="array" selected={Array.isArray(defaultValue)}>
               array
+            </option>
+            <option value="object" selected={isObject(defaultValue)}>
+              object
             </option>
           </select>
         </div>
@@ -222,6 +277,23 @@ function JsonEdit({ onChange, defaultValue = null }) {
             Add
           </button>
         </div>
+
+        {/* Object */}
+        <div
+          class={[
+            'flex flex-col',
+            ...(isObject(defaultValue) ? [] : ['hidden']),
+          ].join(' ')}
+          ref={objectDivRef}
+        >
+          <div ref={objectListRef} />
+          <button
+            onClick={() => handleAddItemToObject('', '')}
+            class="border rounded p-x-1 bg-blue-50"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </JsonEdit.Context.Provider>
   );
@@ -242,7 +314,7 @@ function ArrayItem({ defaultValue, onChange }) {
 
   return (
     <ArrayItem.Context.Provider value={{ get }} ref={head}>
-      <div className="flex gap-x-2">
+      <div class="flex gap-x-2">
         <div>
           <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
             Delete
@@ -258,3 +330,49 @@ function ArrayItem({ defaultValue, onChange }) {
   );
 }
 ArrayItem.Context = createContext();
+
+function ObjectItem({ defaultKey, defaultValue, onChange }) {
+  const [head, keyInputRef, jsonEditRef] = useRefs();
+
+  const [getKey] = useTextInput(keyInputRef);
+
+  function get() {
+    return [getKey(), jsonEditRef.context.get()];
+  }
+
+  function handleDelete() {
+    head.current.remove();
+    setTimeout(() => onChange(), 0);
+  }
+
+  return (
+    <ObjectItem.Context.Provider value={{ get }} ref={head}>
+      <div class="flex gap-x-2">
+        <div>
+          <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
+            Delete
+          </button>
+        </div>
+        <div>
+          <input
+            value={defaultKey}
+            onChange={onChange}
+            onKeyUp={onChange}
+            class="border border-gray-300 rounded p-x-1"
+            ref={keyInputRef}
+          />
+        </div>
+        <JsonEdit
+          defaultValue={defaultValue}
+          onChange={onChange}
+          ref={jsonEditRef}
+        />
+      </div>
+    </ObjectItem.Context.Provider>
+  );
+}
+ObjectItem.Context = createContext();
+
+function isObject(value) {
+  return typeof value === 'object' && !Array.isArray(value) && value !== null;
+}
