@@ -92,6 +92,18 @@ export function useTextInput(ref) {
   return [get, acceptsFunc(set, get)];
 }
 
+export function useNumberInput(ref) {
+  function get() {
+    return parseInt(ref.current.value, 10);
+  }
+
+  function set(value) {
+    ref.current.value = `${value}`;
+  }
+
+  return [get, acceptsFunc(set, get)];
+}
+
 export function usePropertyBoolean(ref, property, onValue, offValue) {
   function get() {
     return ref.current[property];

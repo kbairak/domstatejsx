@@ -4,6 +4,7 @@ export {
   useRefs,
   combineHooks,
   useTextInput,
+  useNumberInput,
   useIntContent,
   useTextContent,
   useStyleBoolean,
