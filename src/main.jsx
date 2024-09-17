@@ -1,3 +1,3 @@
-import App from './jsonEdit';
+import App from './todos';
 
 document.body.append(<App />);

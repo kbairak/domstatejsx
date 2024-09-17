@@ -2,6 +2,18 @@ export function* useRefs() {
   for (;;) yield {};
 }
 
+export function useRef() {
+  return new Proxy(
+    {},
+    {
+      get(target, prop) {
+        if (!(prop in target)) target[prop] = {};
+        return target[prop];
+      },
+    },
+  );
+}
+
 export function combineHooks(...hooks) {
   const [get] = hooks[0];
 

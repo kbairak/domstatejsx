@@ -7,19 +7,19 @@ import {
   useClassBoolean,
   useContext,
   useIntContent,
-  useRefs,
   useTextContent,
   useList,
+  useRef,
 } from './lib/domstatejsx';
 
 export default function App() {
-  const [totalSpan, doneSpan, todoList] = useRefs();
+  const refs = useRef();
 
-  const [, setTotal] = useIntContent(totalSpan);
-  const [, setDone] = useIntContent(doneSpan);
+  const [, setTotal] = useIntContent(refs.totalSpan);
+  const [, setDone] = useIntContent(refs.doneSpan);
 
   const [getTodos, addTodos] = combineHooks(
-    useList(todoList, Todo),
+    useList(refs.todoList, Todo),
     [, (...args) => setTotal((prev) => prev + args.length)],
     [
       ,
@@ -77,8 +77,8 @@ export default function App() {
         <h2 class="text-xl">
           Summary{' '}
           <small>
-            Total: <span ref={totalSpan}>0</span>, Done:{' '}
-            <span ref={doneSpan}>0</span>
+            Total: <span ref={refs.totalSpan}>0</span>, Done:{' '}
+            <span ref={refs.doneSpan}>0</span>
           </small>
         </h2>
         <form onSubmit={handleAdd} class="border rounded-md p-4 flex gap-x-8">
@@ -89,7 +89,7 @@ export default function App() {
           />
           <button class="border px-6 rounded-md bg-blue-200">Add</button>
         </form>
-        <ul ref={todoList} class="py-4" />
+        <ul ref={refs.todoList} class="py-4" />
       </div>
     </App.Context.Provider>
   );
@@ -97,33 +97,33 @@ export default function App() {
 App.Context = createContext();
 
 function Todo({ text, done = false }) {
-  const [head, doneCheckbox, textSpan, textForm, textInput] = useRefs();
+  const refs = useRef();
   const id = crypto.randomUUID();
 
   const [, setIsEditing] = combineHooks(
-    useClassBoolean(textSpan, 'hidden', null),
-    useClassBoolean(textForm, 'flex', 'hidden'),
+    useClassBoolean(refs.textSpan, 'hidden', null),
+    useClassBoolean(refs.textForm, 'flex', 'hidden'),
     [
       ,
       (value) => {
-        if (value) textInput.current.focus();
+        if (value) refs.textInput.current.focus();
       },
     ],
   );
 
   const [getText, setText] = combineHooks(
-    useTextContent(textSpan),
-    [, () => useContext(head.current, App.Context).save()],
+    useTextContent(refs.textSpan),
+    [, () => useContext(refs.head.current, App.Context).save()],
     [, () => setIsEditing(false)],
   );
 
   const [isDone, setIsDone] = combineHooks(
-    useCheckbox(doneCheckbox),
-    useClassBoolean(textSpan, 'line-through', null),
+    useCheckbox(refs.doneCheckbox),
+    useClassBoolean(refs.textSpan, 'line-through', null),
     [
       ,
       (value) => {
-        const { onDone, save } = useContext(head.current, App.Context);
+        const { onDone, save } = useContext(refs.head.current, App.Context);
         onDone(value);
         save();
       },
@@ -131,14 +131,14 @@ function Todo({ text, done = false }) {
   );
 
   function handleDelete() {
-    const { onDelete, save } = useContext(head.current, App.Context);
+    const { onDelete, save } = useContext(refs.head.current, App.Context);
     onDelete(isDone());
-    head.current.remove();
+    refs.head.current.remove();
     save();
   }
 
   function handleToggleEdit() {
-    useContext(head.current, App.Context).onToggleEdit(id);
+    useContext(refs.head.current, App.Context).onToggleEdit(id);
   }
 
   function toggleForm(value) {
@@ -155,7 +155,7 @@ function Todo({ text, done = false }) {
   return (
     <Todo.Context.Provider
       value={{ getText, isDone, id, toggleForm }}
-      ref={head}
+      ref={refs.head}
     >
       <li>
         <label class="flex gap-x-2 p-1 m-1 border rounded-sm">
@@ -164,23 +164,23 @@ function Todo({ text, done = false }) {
               type="checkbox"
               checked={done}
               onChange={(e) => setIsDone(e.target.checked)}
-              ref={doneCheckbox}
+              ref={refs.doneCheckbox}
             />
             <button onClick={handleDelete}>❌</button>
             <button onClick={handleToggleEdit}>✏️</button>
           </div>
-          <span ref={textSpan} class={done ? 'line-through' : null}>
+          <span ref={refs.textSpan} class={done ? 'line-through' : null}>
             {text}
           </span>
           <form
             onSubmit={handleSubmitEdit}
-            ref={textForm}
+            ref={refs.textForm}
             class="hidden gap-x-4"
           >
             <input
               name="text"
               value={text}
-              ref={textInput}
+              ref={refs.textInput}
               class="border rounded-sm px-1"
             />
             <button class="border px-6 rounded-md bg-blue-200">Save</button>

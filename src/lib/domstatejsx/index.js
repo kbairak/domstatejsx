@@ -2,6 +2,7 @@ export { Fragment } from 'jsx-dom';
 export { jsx, jsx as jsxs, jsx as jsxDEV, createElement } from './jsx';
 export {
   useRefs,
+  useRef,
   combineHooks,
   useTextInput,
   useNumberInput,
