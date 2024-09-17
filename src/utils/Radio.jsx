@@ -2,7 +2,6 @@ import { createContext } from '../lib/domstatejsx';
 
 export default function Radio({ options, defaultValue = undefined, onChange }) {
   const refs = [];
-  const ref = (r) => refs.push(r);
 
   function get() {
     const found = refs.find((r) => r.current.checked);
@@ -11,28 +10,24 @@ export default function Radio({ options, defaultValue = undefined, onChange }) {
   }
 
   function set(value) {
-    refs.forEach((ref) => (ref.current.checked = false));
     const found = refs.find(
       (ref) => JSON.parse(ref.current.dataset.value) === value,
     );
     if (found) found.current.checked = true;
   }
 
-  function handleChange(value) {
-    set(value);
-    onChange(value);
-  }
-
+  const name = crypto.randomUUID();
   return (
     <Radio.Context.Provider value={{ get, set }}>
       {options.map(([value, label]) => (
         <label>
           <input
             type="radio"
-            onClick={() => handleChange(value)}
+            name={name}
+            onClick={() => onChange(get())}
             checked={value === defaultValue}
             data-value={JSON.stringify(value)}
-            ref={ref}
+            ref={(r) => refs.push(r)}
           />
           {label}
         </label>

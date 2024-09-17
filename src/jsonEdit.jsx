@@ -73,6 +73,12 @@ function JsonEdit({ onChange, defaultValue = null }) {
     else if (type === 'object') return getObject();
   }
 
+  function getActiveInput() {
+    const type = getType();
+    if (type === 'number') return numberInputRef.current;
+    else if (type === 'string') return stringInputRef.current;
+  }
+
   function toggleVisible(type) {
     [
       ['null', () => {}],
@@ -96,9 +102,11 @@ function JsonEdit({ onChange, defaultValue = null }) {
     } else if (type === 'number') {
       setNumber(0);
       onChange(0);
+      setTimeout(() => numberInputRef.current.focus(), 0);
     } else if (type === 'string') {
       setString('');
       onChange('');
+      setTimeout(() => stringInputRef.current.focus(), 0);
     } else if (type === 'array') {
       setArray([]);
       onChange([]);
@@ -107,6 +115,10 @@ function JsonEdit({ onChange, defaultValue = null }) {
       onChange({});
     }
     toggleVisible(type);
+    setTimeout(() => {
+      const activeInput = getActiveInput();
+      if (activeInput) activeInput.focus();
+    }, 0);
   }
 
   // Boolean
@@ -120,9 +132,6 @@ function JsonEdit({ onChange, defaultValue = null }) {
   // String
   const [, setStringVisible] = useClassBoolean(stringSpanRef, null, 'hidden');
   const [getString, setString] = useTextInput(stringInputRef);
-  if (typeof defaultValue === 'string') {
-    setTimeout(() => stringInputRef.current.focus(), 0);
-  }
 
   // Array
   const [, setArrayVisible] = useClassBoolean(arrayDivRef, null, 'hidden');
@@ -144,6 +153,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
   function handleAddItemToArray(item) {
     addArrayItems({ defaultValue: item, onChange: () => onChange(getArray()) });
     onChange(getArray());
+    setTimeout(() => getArrayRefs().at(-1)?.context?.focus(), 0);
   }
   if (Array.isArray(defaultValue)) {
     setTimeout(() => setArray(defaultValue), 0);
@@ -176,14 +186,15 @@ function JsonEdit({ onChange, defaultValue = null }) {
       onChange: () => onChange(getObject()),
     });
     onChange(getObject());
+    setTimeout(() => getObjectRefs().at(-1)?.context?.focus(), 0);
   }
   if (isObject(defaultValue)) {
     setTimeout(() => setObject(defaultValue), 0);
   }
 
   return (
-    <JsonEdit.Context.Provider value={{ get }}>
-      <div class="flex gap-x-2 border border-gray-300 rounded p-2 m-2">
+    <JsonEdit.Context.Provider value={{ get, getActiveInput }}>
+      <div class="flex gap-x-2 border border-gray-300 rounded p-1 m-1">
         {/* Type select */}
         <div>
           <select
@@ -243,7 +254,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
             value={typeof defaultValue === 'number' ? defaultValue : undefined}
             onKeyUp={(e) => onChange(parseFloat(e.target.value))}
             onChange={(e) => onChange(parseFloat(e.target.value))}
-            class="border border-gray-300 rounded p-x-1"
+            class="border border-gray-300 rounded px-1"
             ref={numberInputRef}
           />
         </span>
@@ -256,7 +267,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
           <input
             value={typeof defaultValue === 'string' ? defaultValue : undefined}
             onKeyUp={(e) => onChange(e.target.value)}
-            class="border border-gray-300 rounded p-x-1"
+            class="border border-gray-300 rounded px-1"
             ref={stringInputRef}
           />
         </span>
@@ -307,13 +318,18 @@ function ArrayItem({ defaultValue, onChange }) {
     return jsonEditRef.context.get();
   }
 
+  function focus() {
+    const activeInput = jsonEditRef.context.getActiveInput();
+    if (activeInput) activeInput.focus();
+  }
+
   function handleDelete() {
     head.current.remove();
     setTimeout(() => onChange(), 0);
   }
 
   return (
-    <ArrayItem.Context.Provider value={{ get }} ref={head}>
+    <ArrayItem.Context.Provider value={{ get, focus }} ref={head}>
       <div class="flex gap-x-2">
         <div>
           <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
@@ -340,13 +356,19 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
     return [getKey(), jsonEditRef.context.get()];
   }
 
+  function focus() {
+    keyInputRef.current.focus();
+  }
+
   function handleDelete() {
     head.current.remove();
     setTimeout(() => onChange(), 0);
   }
 
+  setTimeout(() => keyInputRef.current.focus(), 0);
+
   return (
-    <ObjectItem.Context.Provider value={{ get }} ref={head}>
+    <ObjectItem.Context.Provider value={{ get, focus }} ref={head}>
       <div class="flex gap-x-2">
         <div>
           <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
@@ -358,7 +380,7 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
             value={defaultKey}
             onChange={onChange}
             onKeyUp={onChange}
-            class="border border-gray-300 rounded p-x-1"
+            class="border border-gray-300 rounded px-1"
             ref={keyInputRef}
           />
         </div>
