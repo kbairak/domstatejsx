@@ -1,7 +1,7 @@
-import { useRef, useTextContent } from './lib/domstatejsx';
+import { useRefProxy, useTextContent } from './lib/domstatejsx';
 
 export default function App() {
-  const refs = useRef();
+  const refs = useRefProxy();
   const [, setP] = useTextContent(refs.p);
 
   return (

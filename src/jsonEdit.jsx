@@ -13,41 +13,88 @@ import {
 import Radio from './utils/Radio';
 
 export default function App() {
-  const [preRef] = useRefs();
-
+  const [jsonEditRef, preRef] = useRefs();
+  const [getJson, setJson] = useControlledInput(jsonEditRef);
   const [, setPre] = useTextContent(preRef);
+
+  function renderPre(value = undefined) {
+    setTimeout(() => {
+      const serialized = JSON.stringify(
+        value === undefined ? getJson() : value,
+        null,
+        2,
+      );
+      setPre(serialized);
+    }, 0);
+  }
+  renderPre();
 
   return (
     <>
-      <JsonEdit
-        onChange={(value) => setPre(JSON.stringify(value, null, 2))}
-        defaultValue={{
-          source_string: 'Hello world',
-          source_language: 'en',
-          target_language: 'el',
-          glossary: [
-            {
-              source: 'world',
-              pos: 'noun',
-              translation: 'κόσμος',
-            },
-          ],
-          tm: [
-            {
-              source: 'Hello Bill',
-              translation: 'Καλημέρα Bill',
-            },
-          ],
-          industry: 'fintech',
-          target_audience: 'young people',
-        }}
-      />
-      <pre ref={preRef}>null</pre>
+      <div class="flex gap-x-2">
+        <button
+          onClick={() => {
+            setJson(null);
+            renderPre();
+          }}
+          class="border rounded p-1 bg-blue-50"
+        >
+          Set null
+        </button>
+        <button
+          onClick={() => {
+            setJson('hello world');
+            renderPre();
+          }}
+          class="border rounded p-1 bg-blue-50"
+        >
+          Set string
+        </button>
+        <button
+          onClick={() => {
+            setJson([1, 'two', 3, 'four']);
+            renderPre();
+          }}
+          class="border rounded p-1 bg-blue-50"
+        >
+          Set array
+        </button>
+        <button
+          onClick={() => {
+            setJson({
+              source_string: 'Hello world',
+              source_language: 'en',
+              target_language: 'el',
+              glossary: [
+                {
+                  source: 'world',
+                  pos: 'noun',
+                  translation: 'κόσμος',
+                },
+              ],
+              tm: [
+                {
+                  source: 'Hello Bill',
+                  translation: 'Καλημέρα Bill',
+                },
+              ],
+              industry: 'fintech',
+              target_audience: 'young people',
+            });
+            renderPre();
+          }}
+          class="border rounded p-1 bg-blue-50"
+        >
+          Set prompt context
+        </button>
+      </div>
+      <JsonEdit onChange={renderPre} ref={jsonEditRef} />
+      <pre ref={preRef} />
     </>
   );
 }
 
-function JsonEdit({ onChange, defaultValue = null }) {
+function JsonEdit({ onChange = () => { }, defaultValue = null }) {
   const [
     typeSelectRef,
     booleanSpanRef,
@@ -62,7 +109,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
     objectListRef,
   ] = useRefs();
 
-  const [getType] = useTextInput(typeSelectRef);
+  const [getType, setType] = useTextInput(typeSelectRef);
   function get() {
     const type = getType();
     if (type === 'null') return null;
@@ -73,6 +120,33 @@ function JsonEdit({ onChange, defaultValue = null }) {
     else if (type === 'object') return getObject();
   }
 
+  function set(value) {
+    if (value === null) {
+      setType('null');
+      toggleVisible('null');
+    } else if (typeof value === 'boolean') {
+      setType('boolean');
+      setBoolean(value);
+      toggleVisible('boolean');
+    } else if (typeof value === 'number') {
+      setType('number');
+      setNumber(value);
+      toggleVisible('number');
+    } else if (typeof value === 'string') {
+      setType('string');
+      setString(value);
+      toggleVisible('string');
+    } else if (Array.isArray(value)) {
+      setType('array');
+      setArray(value);
+      toggleVisible('array');
+    } else if (isObject(value)) {
+      setType('object');
+      setObject(value);
+      toggleVisible('object');
+    }
+  }
+
   function getActiveInput() {
     const type = getType();
     if (type === 'number') return numberInputRef.current;
@@ -81,7 +155,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
 
   function toggleVisible(type) {
     [
-      ['null', () => {}],
+      ['null', () => { }],
       ['boolean', setBooleanVisible],
       ['number', setNumberVisible],
       ['string', setStringVisible],
@@ -95,18 +169,15 @@ function JsonEdit({ onChange, defaultValue = null }) {
   // Type
   function handleTypeChange(type) {
     if (type === 'null') {
-      onChange(null);
     } else if (type === 'boolean') {
       setBoolean(false);
       onChange(false);
     } else if (type === 'number') {
       setNumber(0);
       onChange(0);
-      setTimeout(() => numberInputRef.current.focus(), 0);
     } else if (type === 'string') {
       setString('');
       onChange('');
-      setTimeout(() => stringInputRef.current.focus(), 0);
     } else if (type === 'array') {
       setArray([]);
       onChange([]);
@@ -115,10 +186,7 @@ function JsonEdit({ onChange, defaultValue = null }) {
       onChange({});
     }
     toggleVisible(type);
-    setTimeout(() => {
-      const activeInput = getActiveInput();
-      if (activeInput) activeInput.focus();
-    }, 0);
+    getActiveInput()?.focus();
   }
 
   // Boolean
@@ -146,17 +214,14 @@ function JsonEdit({ onChange, defaultValue = null }) {
     resetArrayItems(
       ...items.map((item) => ({
         defaultValue: item,
-        onChange: () => onChange(getArray()),
+        onChange: () => onChange(items),
       })),
     );
   }
-  function handleAddItemToArray(item) {
-    addArrayItems({ defaultValue: item, onChange: () => onChange(getArray()) });
+  function handleAddItemToArray() {
+    addArrayItems({ defaultValue: '', onChange: () => onChange(getArray()) });
     onChange(getArray());
-    setTimeout(() => getArrayRefs().at(-1)?.context?.focus(), 0);
-  }
-  if (Array.isArray(defaultValue)) {
-    setTimeout(() => setArray(defaultValue), 0);
+    getArrayRefs().at(-1)?.context?.focus();
   }
 
   // Object
@@ -179,21 +244,18 @@ function JsonEdit({ onChange, defaultValue = null }) {
       })),
     );
   }
-  function handleAddItemToObject(key, value) {
+  function handleAddItemToObject() {
     addObjectItems({
-      defaultKey: key,
-      defaultValue: value,
+      defaultKey: '',
+      defaultValue: '',
       onChange: () => onChange(getObject()),
     });
     onChange(getObject());
-    setTimeout(() => getObjectRefs().at(-1)?.context?.focus(), 0);
-  }
-  if (isObject(defaultValue)) {
-    setTimeout(() => setObject(defaultValue), 0);
+    getObjectRefs().at(-1)?.context?.focus();
   }
 
   return (
-    <JsonEdit.Context.Provider value={{ get, getActiveInput }}>
+    <JsonEdit.Context.Provider value={{ get, set, getActiveInput }}>
       <div class="flex gap-x-2 border border-gray-300 rounded p-1 m-1">
         {/* Type select */}
         <div>
@@ -280,9 +342,14 @@ function JsonEdit({ onChange, defaultValue = null }) {
           ].join(' ')}
           ref={arrayDivRef}
         >
-          <div ref={arrayListRef} />
+          <div ref={arrayListRef}>
+            {Array.isArray(defaultValue) &&
+              defaultValue.map((item) => (
+                <ArrayItem defaultValue={item} onChange={onChange} />
+              ))}
+          </div>
           <button
-            onClick={() => handleAddItemToArray('')}
+            onClick={handleAddItemToArray}
             class="border rounded p-x-1 bg-blue-50"
           >
             Add
@@ -297,9 +364,18 @@ function JsonEdit({ onChange, defaultValue = null }) {
           ].join(' ')}
           ref={objectDivRef}
         >
-          <div ref={objectListRef} />
+          <div ref={objectListRef}>
+            {isObject(defaultValue) &&
+              Object.entries(defaultValue).map(([key, value]) => (
+                <ObjectItem
+                  defaultKey={key}
+                  defaultValue={value}
+                  onChange={onChange}
+                />
+              ))}
+          </div>
           <button
-            onClick={() => handleAddItemToObject('', '')}
+            onClick={handleAddItemToObject}
             class="border rounded p-x-1 bg-blue-50"
           >
             Add
@@ -319,13 +395,12 @@ function ArrayItem({ defaultValue, onChange }) {
   }
 
   function focus() {
-    const activeInput = jsonEditRef.context.getActiveInput();
-    if (activeInput) activeInput.focus();
+    jsonEditRef.context.getActiveInput()?.focus();
   }
 
   function handleDelete() {
     head.current.remove();
-    setTimeout(() => onChange(), 0);
+    setTimeout(() => onChange(get()), 0);
   }
 
   return (
@@ -362,7 +437,7 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
 
   function handleDelete() {
     head.current.remove();
-    setTimeout(() => onChange(), 0);
+    setTimeout(() => onChange(get()), 0);
   }
 
   setTimeout(() => keyInputRef.current.focus(), 0);
@@ -378,8 +453,8 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
         <div>
           <input
             value={defaultKey}
-            onChange={onChange}
-            onKeyUp={onChange}
+            onChange={() => onChange(get())}
+            onKeyUp={() => onChange(get())}
             class="border border-gray-300 rounded px-1"
             ref={keyInputRef}
           />

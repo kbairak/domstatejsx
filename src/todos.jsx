@@ -9,11 +9,11 @@ import {
   useIntContent,
   useTextContent,
   useList,
-  useRef,
+  useRefProxy,
 } from './lib/domstatejsx';
 
 export default function App() {
-  const refs = useRef();
+  const refs = useRefProxy();
 
   const [, setTotal] = useIntContent(refs.totalSpan);
   const [, setDone] = useIntContent(refs.doneSpan);
@@ -97,7 +97,7 @@ export default function App() {
 App.Context = createContext();
 
 function Todo({ text, done = false }) {
-  const refs = useRef();
+  const refs = useRefProxy();
   const id = crypto.randomUUID();
 
   const [, setIsEditing] = combineHooks(

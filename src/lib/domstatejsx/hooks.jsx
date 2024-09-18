@@ -1,8 +1,10 @@
+import { EXPOSE } from './context';
+
 export function* useRefs() {
-  for (;;) yield {};
+  for (; ;) yield {};
 }
 
-export function useRef() {
+export function useRefProxy() {
   return new Proxy(
     {},
     {
@@ -25,7 +27,7 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function (valueOrFunc) {
+  return function(valueOrFunc) {
     const value =
       valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
@@ -197,6 +199,7 @@ export function useList(ref, Component) {
 
   function reset(...args) {
     refs.forEach(({ current }) => current.remove());
+    refs.splice(0, refs.length);
     add(...args);
   }
 
@@ -204,11 +207,26 @@ export function useList(ref, Component) {
     records.forEach((record) => {
       record.removedNodes.forEach((node) => {
         const index = refs.findIndex(({ current }) => current === node);
-        refs.splice(index, 1);
+        if (index !== -1) refs.splice(index, 1);
       });
     });
   });
-  setTimeout(() => observer.observe(ref.current, { childList: true }), 0);
+
+  setTimeout(() => {
+    observer.observe(ref.current, { childList: true });
+    ref.current.childNodes.forEach((current) => {
+      refs.push({ current });
+      const found = Object.entries(current.dataset || {}).find(
+        ([key]) => key.length === 39 && key.startsWith('context'),
+      );
+      if (found) {
+        const [, providerUuid] = found;
+        if (providerUuid in EXPOSE) {
+          refs.at(-1).context = EXPOSE[providerUuid];
+        }
+      }
+    });
+  }, 0);
 
   return [get, add, reset];
 }
