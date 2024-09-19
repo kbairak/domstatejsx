@@ -1,16 +1,16 @@
-export function useQuery({
+function useQueryOrMutation({
   onStart = () => { },
-  queryFn,
+  fn,
   onSuccess = () => { },
   onError = () => { },
   onEnd = () => { },
   defaultArgs = [],
   enabled = true,
 }) {
-  async function refetch(...args) {
+  async function doFn(...args) {
     onStart();
     try {
-      const response = await queryFn(...args);
+      const response = await fn(...args);
       onSuccess(response);
     } catch (error) {
       onError(error);
@@ -20,30 +20,17 @@ export function useQuery({
     }
   }
 
-  if (enabled) setTimeout(() => refetch(...defaultArgs), 0);
+  if (enabled) setTimeout(() => doFn(...defaultArgs), 0);
 
-  return { refetch };
+  return doFn;
 }
 
-export function useMutation({
-  onStart = () => { },
-  mutationFn,
-  onSuccess = () => { },
-  onError = () => { },
-  onEnd = () => { },
-}) {
-  async function mutate(...args) {
-    onStart();
-    try {
-      const response = await mutationFn(...args);
-      onSuccess(response);
-    } catch (error) {
-      onError(error);
-      throw error;
-    } finally {
-      onEnd();
-    }
-  }
+export function useQuery({ queryFn, ...props }) {
+  const doFn = useQueryOrMutation({ fn: queryFn, ...props });
+  return { refetch: doFn };
+}
 
-  return { mutate };
+export function useMutation({ mutationFn, ...props }) {
+  const doFn = useQueryOrMutation({ fn: mutationFn, ...props, enabled: false });
+  return { mutate: doFn };
 }

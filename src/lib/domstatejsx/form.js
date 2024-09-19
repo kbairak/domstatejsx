@@ -1,17 +1,12 @@
-/*  TODOs:
- *  - selects
- *  - other components
- * */
-
 export function useForm({
   when = 'onChange',
-  onStart = async () => {},
-  onSubmit = async () => {},
-  onSuccess = async () => {},
-  onError = async () => {},
-  onEnd = async () => {},
+  onStart = async () => { },
+  onSubmit = async () => { },
+  onSuccess = async () => { },
+  onError = async () => { },
+  onEnd = async () => { },
   fields,
-  validate = async () => {},
+  validate = async () => { },
   defaultValues = null,
 } = {}) {
   const fieldRefs = {};
@@ -144,7 +139,7 @@ export function useForm({
     if (validate !== null) fieldData[name].validate = validate;
     if (!('required' in fieldData[name])) fieldData[name].required = false;
     if (!('validate' in fieldData[name]))
-      fieldData[name].validate = async () => {};
+      fieldData[name].validate = async () => { };
 
     return {
       ref: (r) => {

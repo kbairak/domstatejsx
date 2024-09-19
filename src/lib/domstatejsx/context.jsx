@@ -1,4 +1,4 @@
-export const EXPOSE = {};
+const EXPOSE = {};
 
 class Context {
   constructor(defaultValue) {
@@ -72,4 +72,18 @@ export function useContext(
     const upNode = findUp(node, upContext) || document.body;
     return useContext(upNode, context, { direction: 'down' });
   }
+}
+
+export function getRef(current) {
+  const result = { current };
+  const found = Object.entries(current.dataset || {}).find(
+    ([key]) => key.length === 39 && key.startsWith('context'),
+  );
+  if (found) {
+    const [, providerUuid] = found;
+    if (providerUuid in EXPOSE) {
+      result.context = EXPOSE[providerUuid];
+    }
+  }
+  return result;
 }

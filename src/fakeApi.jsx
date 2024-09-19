@@ -32,9 +32,7 @@ export default function App() {
     null,
     'none',
   );
-  const [, , resetMessages] = useList(refs.ul, ({ message }) => (
-    <li>{message}</li>
-  ));
+  const [, , resetMessages] = useList(refs.ul, (message) => <li>{message}</li>);
   const [, setFormIsLoading] = usePropertyBoolean(
     refs.submit,
     'disabled',
@@ -47,8 +45,9 @@ export default function App() {
       setQueryIsLoading(true);
     },
     queryFn: fakeApi.get,
-    onSuccess: (messages) =>
-      resetMessages(...messages.map((message) => ({ message }))),
+    onSuccess: (messages) => {
+      resetMessages(...messages);
+    },
     onEnd: () => setQueryIsLoading(false),
   });
 

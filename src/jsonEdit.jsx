@@ -1,6 +1,7 @@
 import './tailwind.css';
 
 import {
+  runOnlyLast,
   createContext,
   useClassBoolean,
   useControlledInput,
@@ -94,7 +95,7 @@ export default function App() {
   );
 }
 
-function JsonEdit({ onChange = () => {}, defaultValue = null }) {
+function JsonEdit({ onChange = () => { }, defaultValue = null }) {
   const refs = useRefProxy();
 
   const [getType, setType] = useTextInput(refs.typeSelect);
@@ -143,7 +144,7 @@ function JsonEdit({ onChange = () => {}, defaultValue = null }) {
 
   function toggleVisible(type) {
     [
-      ['null', () => {}],
+      ['null', () => { }],
       ['boolean', setBooleanVisible],
       ['number', setNumberVisible],
       ['string', setStringVisible],
@@ -174,7 +175,7 @@ function JsonEdit({ onChange = () => {}, defaultValue = null }) {
       onChange({});
     }
     toggleVisible(type);
-    getActiveInput()?.focus();
+    runOnlyLast(() => getActiveInput()?.focus());
   }
 
   // Boolean
@@ -387,7 +388,7 @@ function ArrayItem({ defaultValue, onChange }) {
   }
 
   function focus() {
-    refs.jsonEdit.context.getActiveInput()?.focus();
+    runOnlyLast(() => refs.jsonEdit.context.getActiveInput()?.focus());
   }
 
   function handleDelete() {
@@ -424,7 +425,7 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
   }
 
   function focus() {
-    refs.keyInput.current.focus();
+    runOnlyLast(() => refs.keyInput.current.focus());
   }
 
   function handleDelete() {
@@ -432,7 +433,7 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
     setTimeout(() => onChange(get()), 0);
   }
 
-  setTimeout(() => refs.keyInput.current.focus(), 0);
+  focus();
 
   return (
     <ObjectItem.Context.Provider value={{ get, focus }} ref={refs.head}>

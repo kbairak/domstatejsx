@@ -1,7 +1,7 @@
-import { EXPOSE } from './context';
+import { getRef } from './context';
 
 export function* useRefs() {
-  for (;;) yield {};
+  for (; ;) yield {};
 }
 
 export function useRefProxy() {
@@ -27,7 +27,7 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function (valueOrFunc) {
+  return function(valueOrFunc) {
     const value =
       valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
@@ -189,7 +189,7 @@ export function useClassBoolean(ref, onValue, offValue) {
   return [get, acceptsFunc(set, get)];
 }
 
-export function useList(ref, Component) {
+export function useList(ref, getComponent) {
   const refs = [];
 
   function get() {
@@ -198,9 +198,11 @@ export function useList(ref, Component) {
 
   function add(...args) {
     ref.current.append(
-      ...args.map((props) => (
-        <Component {...props} ref={(r) => refs.push(r)} />
-      )),
+      ...args.map((arg) => {
+        const node = getComponent(arg);
+        refs.push(getRef(node));
+        return node;
+      }),
     );
   }
 
@@ -221,18 +223,7 @@ export function useList(ref, Component) {
 
   setTimeout(() => {
     observer.observe(ref.current, { childList: true });
-    ref.current.childNodes.forEach((current) => {
-      refs.push({ current });
-      const found = Object.entries(current.dataset || {}).find(
-        ([key]) => key.length === 39 && key.startsWith('context'),
-      );
-      if (found) {
-        const [, providerUuid] = found;
-        if (providerUuid in EXPOSE) {
-          refs.at(-1).context = EXPOSE[providerUuid];
-        }
-      }
-    });
+    ref.current.childNodes.forEach((node) => refs.push(getRef(node)));
   }, 0);
 
   return [get, add, reset];

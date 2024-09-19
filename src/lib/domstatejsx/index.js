@@ -20,3 +20,4 @@ export { createContext, useContext, findUp } from './context';
 export { useQuery, useMutation } from './query';
 export { useForm } from './form';
 export { Route, Link } from './router';
+export { runOnlyLast } from './runOnlyLast';

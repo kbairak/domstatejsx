@@ -2,7 +2,7 @@ import {
   jsx as jsxDomJsx,
   createElement as jsxDomCreateElement,
 } from 'jsx-dom';
-import { EXPOSE } from './context';
+import { getRef } from './context';
 
 function wrap(func) {
   return function wrapped(tag, props, ...args) {
@@ -12,16 +12,7 @@ function wrap(func) {
     const current = func(tag, props, ...args);
 
     if (ref) {
-      const result = { current };
-      const found = Object.entries(current.dataset || {}).find(
-        ([key]) => key.length === 39 && key.startsWith('context'),
-      );
-      if (found) {
-        const [, providerUuid] = found;
-        if (providerUuid in EXPOSE) {
-          result.context = EXPOSE[providerUuid];
-        }
-      }
+      const result = getRef(current);
       if (ref instanceof Function) {
         ref(result);
       } else {

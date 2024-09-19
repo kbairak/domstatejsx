@@ -60,7 +60,7 @@ Your first application can look like this:
 document.body.append(<h1>hello world</h1>);
 ```
 
-JSX expressions return native DOM elements. The above is rougly equivalent to:
+JSX expressions return native DOM elements. The above is roughly equivalent to:
 
 ```javascript
 const element = document.createElement('h1');
@@ -163,7 +163,7 @@ document.body.append(<Counter />);
 >     // ...
 >   }
 >
->   countSpanRef = { current: <span>0</span> };
+>   const countSpanRef = { current: <span>0</span> };
 >   return (
 >     <>
 >       <div>
@@ -557,14 +557,14 @@ APIs. Their design has been inspired by the
 
 `useQuery` accepts the following properties:
 
-- `queryFn`: an async function that returns the remote data
 - `onStart`: function that runs when the query begins
-- `onEnd`: function that runs when the query ends, regardless of whether the
-  fetching was successful or not
+- `queryFn`: an async function that returns the remote data
 - `onSuccess`: function that runs after a successful fetching; it receives the
   fetched data
 - `onError`: function that runs after a failed fetching; it receives the error
   object
+- `onEnd`: function that runs when the query ends, regardless of whether the
+  fetching was successful or not
 - `enabled`: boolean (default true), determines if the query will run once the
   moment it is defined
 
@@ -575,26 +575,28 @@ Sample usage:
 
 ```javascript
 function App() {
-  const [button, paragraph] = useRefs();
-  const [, setIsLoading] = usePropertyBoolean(button, 'disabled', true, false);
-  const [, setParagraph] = useTextContent(paragraph);
+  const refs = useRefProxy();
+  const [, setIsLoading] = usePropertyBoolean(refs.button, 'disabled', true, false);
+  const [, setParagraph] = useTextContent(refs.paragraph);
 
   const { refetch } = useQuery({
     queryFn: async () => {
       const response = await fetch(...);
       return await response.json();
     },
-    onStart: () => setIsLoading(true),
+    onStart: () => {
+      setParagraph('');
+      setIsLoading(true);
+    },
     onEnd: () => setIsLoading(false),
     onSuccess: ({ message }) => setParagraph(message),
     onError: () => setParagraph('Something went wrong'),
-    enabled: false,
   });
 
   return (
     <>
-      <button onClick={refetch} ref={button}>Fetch data</button>
-      <p ref={paragraph} />
+      <p ref={refs.paragraph} />
+      <button onClick={refetch} ref={refs.button}>Refetch</button>
     </>
   );
 }
@@ -602,14 +604,13 @@ function App() {
 
 `useMutation` accepts the following properties:
 
-- `mutationFn`: an async function that performs the mutation to the remote API
 - `onStart`: function that runs when the mutation begins
-- `onEnd`: function that runs when the mutation ends, regardless of whether the
-  mutation was successful or not
-- `onSuccess`: function that runs after a successful mutation; it receives the
-  remote server's response
-- `onError`: function that runs after a failed mutation; it receives the error
-  object
+- `mutationFn`: an async function that performs the mutation to the remote API
+- `onSuccess`: function that runs after a successful mutation; it receives the remote
+  server's response
+- `onError`: function that runs after a failed mutation; it receives the error object
+- `onEnd`: function that runs when the mutation ends, regardless of whether the mutation
+  was successful or not
 
 `useMutation` returns a mutation object with a `mutate` method you can use to
 trigger a mutation. The arguments to `mutate` will be passed on to
@@ -657,12 +658,10 @@ The `useForm` hook is heavily inspired by
 form object before rendering and then insert its `register` method into inputs
 you want to control with the form. You also get:
 
-- a `registerError` method to
-  insert into DOM elements you want validation errors to appear in
-- `registerButton` to insert into any button you want to disable while the form
-  is submitting
-- `handleSubmit` that you can use during form submission to disable the default
-  event and make sure the form's data is passed to the callback
+- a `registerForm` function to insert into the `<form>` element to intercept its
+  submission
+- a `registerError` function to insert into DOM elements you want validation errors to
+  appear in
 - `reset` which you can invoke to reset all inputs to their default value
 
 Here it is in action:
