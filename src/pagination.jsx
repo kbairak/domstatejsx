@@ -4,7 +4,7 @@ import {
   useList,
   usePropertyBoolean,
   useQuery,
-  useRefs,
+  useRefProxy,
   useStyleBoolean,
 } from './lib/domstatejsx';
 
@@ -14,18 +14,18 @@ async function fakeGet(page) {
 }
 
 export default function App() {
-  const [prevButton, nextButton, spinner, pageList] = useRefs();
+  const refs = useRefProxy();
 
   const [, setPrevDisabled] = usePropertyBoolean(
-    prevButton,
+    refs.prevButton,
     'disabled',
     true,
     false,
   );
   const [, setLoading] = combineHooks(
-    useStyleBoolean(spinner, 'display', null, 'none'),
-    useStyleBoolean(pageList, 'display', 'none', null),
-    usePropertyBoolean(nextButton, 'disabled', true, false),
+    useStyleBoolean(refs.spinner, 'display', null, 'none'),
+    useStyleBoolean(refs.pageList, 'display', 'none', null),
+    usePropertyBoolean(refs.nextButton, 'disabled', true, false),
   );
 
   const { refetch } = useQuery({
@@ -33,14 +33,14 @@ export default function App() {
     onStart: () => setLoading(true),
     onEnd: () => setLoading(false),
     onSuccess: (data) => {
-      const { addPage, getPageNumber } = pageList.context;
+      const { addPage, getPageNumber } = refs.pageList.context;
       addPage({ data });
       setPrevDisabled(getPageNumber() === 0);
     },
   });
 
   function handleNext() {
-    const { getPageNumber, getPageCount, showPage } = pageList.context;
+    const { getPageNumber, getPageCount, showPage } = refs.pageList.context;
     const currentPageNumber = getPageNumber();
     if (currentPageNumber === getPageCount() - 1) {
       refetch(currentPageNumber + 2);
@@ -51,7 +51,7 @@ export default function App() {
   }
 
   function handlePrevious() {
-    const { getPageNumber, showPage } = pageList.context;
+    const { getPageNumber, showPage } = refs.pageList.context;
     showPage((prev) => prev - 1);
     setPrevDisabled(getPageNumber() === 0);
   }
@@ -59,22 +59,22 @@ export default function App() {
   return (
     <>
       <div>
-        <button onClick={handlePrevious} disabled ref={prevButton}>
+        <button onClick={handlePrevious} disabled ref={refs.prevButton}>
           Prev
         </button>
-        <button onClick={handleNext} ref={nextButton}>
+        <button onClick={handleNext} ref={refs.nextButton}>
           Next
         </button>
       </div>
-      <div ref={spinner}>Loading...</div>
-      <PageList ref={pageList} />
+      <div ref={refs.spinner}>Loading...</div>
+      <PageList ref={refs.pageList} />
     </>
   );
 }
 
 function PageList() {
-  const [head] = useRefs();
-  const [getPages, addPage] = combineHooks(useList(head, Page), [
+  const refs = useRefProxy();
+  const [getPages, addPage] = combineHooks(useList(refs.head, Page), [
     ,
     () => showPage(getPageCount() - 1),
   ]);
@@ -100,23 +100,23 @@ function PageList() {
   return (
     <PageList.Context.Provider
       value={{ getPageNumber, getPageCount, addPage, showPage }}
-      ref={head}
+      ref={refs.head}
     />
   );
 }
 PageList.Context = createContext();
 
 function Page({ data }) {
-  const [head] = useRefs();
+  const refs = useRefProxy();
   const [isHidden, setIsHidden] = useStyleBoolean(
-    head,
+    refs.head,
     'display',
     'none',
     null,
   );
 
   return (
-    <Page.Context.Provider value={{ isHidden, setIsHidden }} ref={head}>
+    <Page.Context.Provider value={{ isHidden, setIsHidden }} ref={refs.head}>
       <ul>
         {data.map((message) => (
           <li>{message}</li>

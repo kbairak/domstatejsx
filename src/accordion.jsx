@@ -1,24 +1,24 @@
 import {
   createContext,
   useContext,
-  useRefs,
+  useRefProxy,
   useStyleBoolean,
 } from './lib/domstatejsx';
 
 export default function App() {
-  const [accordionRef] = useRefs();
+  const refs = useRefProxy();
 
   function handleExpandAll() {
-    accordionRef.context.expandAll();
+    refs.accordion.context.expandAll();
   }
   function handleCollapseAll() {
-    accordionRef.context.collapseAll();
+    refs.accordion.context.collapseAll();
   }
   function handleTriggerItem2() {
-    accordionRef.context.triggerItem('2');
+    refs.accordion.context.triggerItem('2');
   }
   function handleShowItem2() {
-    accordionRef.context.triggerItem('2', true);
+    refs.accordion.context.triggerItem('2', true);
   }
 
   return (
@@ -29,7 +29,7 @@ export default function App() {
         <button onClick={handleTriggerItem2}>Trigger item 2</button>
         <button onClick={handleShowItem2}>Show item 2</button>
       </div>
-      <Accordion ref={accordionRef}>
+      <Accordion ref={refs.accordion}>
         <Accordion.Item trigger="trigger 1" id="1">
           Content 1
         </Accordion.Item>
@@ -45,10 +45,10 @@ export default function App() {
 }
 
 function Accordion({ children, multi = false }) {
-  const head = {};
+  const refs = useRefProxy();
 
   function triggerItem(id, show = null) {
-    const items = useContext(head.current, Accordion.Item.Context, {
+    const items = useContext(refs.head.current, Accordion.Item.Context, {
       direction: 'down',
     });
 
@@ -65,13 +65,13 @@ function Accordion({ children, multi = false }) {
 
   function expandAll() {
     if (!multi) return;
-    useContext(head.current, Accordion.Item.Context, {
+    useContext(refs.head.current, Accordion.Item.Context, {
       direction: 'down',
     }).forEach(({ setContentHidden }) => setContentHidden(false));
   }
 
   function collapseAll() {
-    useContext(head.current, Accordion.Item.Context, {
+    useContext(refs.head.current, Accordion.Item.Context, {
       direction: 'down',
     }).forEach(({ setContentHidden }) => setContentHidden(true));
   }
@@ -79,7 +79,7 @@ function Accordion({ children, multi = false }) {
   return (
     <Accordion.Context.Provider
       value={{ triggerItem, expandAll, collapseAll }}
-      ref={head}
+      ref={refs.head}
     >
       {children}
     </Accordion.Context.Provider>
@@ -93,10 +93,10 @@ function AccordionItem({
   defaultHidden = true,
   children,
 }) {
-  const [head, contentDiv] = useRefs();
+  const refs = useRefProxy();
 
   const [, setContentHidden] = useStyleBoolean(
-    contentDiv,
+    refs.content,
     'display',
     'none',
     null,
@@ -104,19 +104,22 @@ function AccordionItem({
 
   const id = defaultId || crypto.randomUUID();
   function handleTrigger() {
-    const { triggerItem } = useContext(head.current, Accordion.Context);
+    const { triggerItem } = useContext(refs.head.current, Accordion.Context);
     triggerItem(id);
   }
 
   return (
     <Accordion.Item.Context.Provider
       value={{ id, setContentHidden }}
-      ref={head}
+      ref={refs.head}
     >
       <div>
         <button onClick={handleTrigger}>{trigger}</button>
       </div>
-      <div style={{ display: defaultHidden ? 'none' : null }} ref={contentDiv}>
+      <div
+        style={{ display: defaultHidden ? 'none' : null }}
+        ref={refs.content}
+      >
         {children}
       </div>
     </Accordion.Item.Context.Provider>

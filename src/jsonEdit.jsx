@@ -6,16 +6,16 @@ import {
   useControlledInput,
   useList,
   useNumberInput,
-  useRefs,
+  useRefProxy,
   useTextContent,
   useTextInput,
 } from './lib/domstatejsx';
 import Radio from './utils/Radio';
 
 export default function App() {
-  const [jsonEditRef, preRef] = useRefs();
-  const [getJson, setJson] = useControlledInput(jsonEditRef);
-  const [, setPre] = useTextContent(preRef);
+  const refs = useRefProxy();
+  const [getJson, setJson] = useControlledInput(refs.jsonEdit);
+  const [, setPre] = useTextContent(refs.pre);
 
   function renderPre(value = undefined) {
     setTimeout(() => {
@@ -88,28 +88,16 @@ export default function App() {
           Set prompt context
         </button>
       </div>
-      <JsonEdit onChange={renderPre} ref={jsonEditRef} />
-      <pre ref={preRef} />
+      <JsonEdit onChange={renderPre} ref={refs.jsonEdit} />
+      <pre ref={refs.pre} />
     </>
   );
 }
 
-function JsonEdit({ onChange = () => { }, defaultValue = null }) {
-  const [
-    typeSelectRef,
-    booleanSpanRef,
-    booleanRadioRef,
-    numberSpanRef,
-    numberInputRef,
-    stringSpanRef,
-    stringInputRef,
-    arrayDivRef,
-    arrayListRef,
-    objectDivRef,
-    objectListRef,
-  ] = useRefs();
+function JsonEdit({ onChange = () => {}, defaultValue = null }) {
+  const refs = useRefProxy();
 
-  const [getType, setType] = useTextInput(typeSelectRef);
+  const [getType, setType] = useTextInput(refs.typeSelect);
   function get() {
     const type = getType();
     if (type === 'null') return null;
@@ -149,13 +137,13 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
 
   function getActiveInput() {
     const type = getType();
-    if (type === 'number') return numberInputRef.current;
-    else if (type === 'string') return stringInputRef.current;
+    if (type === 'number') return refs.numberInput.current;
+    else if (type === 'string') return refs.stringInput.current;
   }
 
   function toggleVisible(type) {
     [
-      ['null', () => { }],
+      ['null', () => {}],
       ['boolean', setBooleanVisible],
       ['number', setNumberVisible],
       ['string', setStringVisible],
@@ -190,21 +178,25 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
   }
 
   // Boolean
-  const [, setBooleanVisible] = useClassBoolean(booleanSpanRef, null, 'hidden');
-  const [getBoolean, setBoolean] = useControlledInput(booleanRadioRef);
+  const [, setBooleanVisible] = useClassBoolean(
+    refs.booleanSpan,
+    null,
+    'hidden',
+  );
+  const [getBoolean, setBoolean] = useControlledInput(refs.booleanRadio);
 
   // Number
-  const [, setNumberVisible] = useClassBoolean(numberSpanRef, null, 'hidden');
-  const [getNumber, setNumber] = useNumberInput(numberInputRef);
+  const [, setNumberVisible] = useClassBoolean(refs.numberSpan, null, 'hidden');
+  const [getNumber, setNumber] = useNumberInput(refs.numberInput);
 
   // String
-  const [, setStringVisible] = useClassBoolean(stringSpanRef, null, 'hidden');
-  const [getString, setString] = useTextInput(stringInputRef);
+  const [, setStringVisible] = useClassBoolean(refs.stringSpan, null, 'hidden');
+  const [getString, setString] = useTextInput(refs.stringInput);
 
   // Array
-  const [, setArrayVisible] = useClassBoolean(arrayDivRef, null, 'hidden');
+  const [, setArrayVisible] = useClassBoolean(refs.arrayDiv, null, 'hidden');
   const [getArrayRefs, addArrayItems, resetArrayItems] = useList(
-    arrayListRef,
+    refs.arrayList,
     ArrayItem,
   );
   function getArray() {
@@ -225,9 +217,9 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
   }
 
   // Object
-  const [, setObjectVisible] = useClassBoolean(objectDivRef, null, 'hidden');
+  const [, setObjectVisible] = useClassBoolean(refs.objectDiv, null, 'hidden');
   const [getObjectRefs, addObjectItems, resetObjectItems] = useList(
-    objectListRef,
+    refs.objectList,
     ObjectItem,
   );
   function getObject() {
@@ -262,7 +254,7 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
           <select
             onChange={(e) => handleTypeChange(e.target.value)}
             class="p-1 rounded"
-            ref={typeSelectRef}
+            ref={refs.typeSelect}
           >
             <option value="null" selected={defaultValue === null}>
               null
@@ -291,7 +283,7 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
         {/* Boolean */}
         <span
           class={typeof defaultValue === 'boolean' ? '' : 'hidden'}
-          ref={booleanSpanRef}
+          ref={refs.booleanSpan}
         >
           <Radio
             options={[
@@ -302,14 +294,14 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
               typeof defaultValue === 'boolean' ? defaultValue : undefined
             }
             onChange={onChange}
-            ref={booleanRadioRef}
+            ref={refs.booleanRadio}
           />
         </span>
 
         {/* Number */}
         <span
           class={typeof defaultValue === 'number' ? '' : 'hidden'}
-          ref={numberSpanRef}
+          ref={refs.numberSpan}
         >
           <input
             type="number"
@@ -317,20 +309,20 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
             onKeyUp={(e) => onChange(parseFloat(e.target.value))}
             onChange={(e) => onChange(parseFloat(e.target.value))}
             class="border border-gray-300 rounded px-1"
-            ref={numberInputRef}
+            ref={refs.numberInput}
           />
         </span>
 
         {/* String */}
         <span
           class={typeof defaultValue === 'string' ? '' : 'hidden'}
-          ref={stringSpanRef}
+          ref={refs.stringSpan}
         >
           <input
             value={typeof defaultValue === 'string' ? defaultValue : undefined}
             onKeyUp={(e) => onChange(e.target.value)}
             class="border border-gray-300 rounded px-1"
-            ref={stringInputRef}
+            ref={refs.stringInput}
           />
         </span>
 
@@ -340,9 +332,9 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
             'flex flex-col',
             ...(Array.isArray(defaultValue) ? [] : ['hidden']),
           ].join(' ')}
-          ref={arrayDivRef}
+          ref={refs.arrayDiv}
         >
-          <div ref={arrayListRef}>
+          <div ref={refs.arrayList}>
             {Array.isArray(defaultValue) &&
               defaultValue.map((item) => (
                 <ArrayItem defaultValue={item} onChange={onChange} />
@@ -362,9 +354,9 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
             'flex flex-col',
             ...(isObject(defaultValue) ? [] : ['hidden']),
           ].join(' ')}
-          ref={objectDivRef}
+          ref={refs.objectDiv}
         >
-          <div ref={objectListRef}>
+          <div ref={refs.objectList}>
             {isObject(defaultValue) &&
               Object.entries(defaultValue).map(([key, value]) => (
                 <ObjectItem
@@ -388,23 +380,23 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }) {
 JsonEdit.Context = createContext();
 
 function ArrayItem({ defaultValue, onChange }) {
-  const [head, jsonEditRef] = useRefs();
+  const refs = useRefProxy();
 
   function get() {
-    return jsonEditRef.context.get();
+    return refs.jsonEdit.context.get();
   }
 
   function focus() {
-    jsonEditRef.context.getActiveInput()?.focus();
+    refs.jsonEdit.context.getActiveInput()?.focus();
   }
 
   function handleDelete() {
-    head.current.remove();
+    refs.head.current.remove();
     setTimeout(() => onChange(get()), 0);
   }
 
   return (
-    <ArrayItem.Context.Provider value={{ get, focus }} ref={head}>
+    <ArrayItem.Context.Provider value={{ get, focus }} ref={refs.head}>
       <div class="flex gap-x-2">
         <div>
           <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
@@ -414,7 +406,7 @@ function ArrayItem({ defaultValue, onChange }) {
         <JsonEdit
           defaultValue={defaultValue}
           onChange={onChange}
-          ref={jsonEditRef}
+          ref={refs.jsonEdit}
         />
       </div>
     </ArrayItem.Context.Provider>
@@ -423,27 +415,27 @@ function ArrayItem({ defaultValue, onChange }) {
 ArrayItem.Context = createContext();
 
 function ObjectItem({ defaultKey, defaultValue, onChange }) {
-  const [head, keyInputRef, jsonEditRef] = useRefs();
+  const refs = useRefProxy();
 
-  const [getKey] = useTextInput(keyInputRef);
+  const [getKey] = useTextInput(refs.keyInput);
 
   function get() {
-    return [getKey(), jsonEditRef.context.get()];
+    return [getKey(), refs.jsonEdit.context.get()];
   }
 
   function focus() {
-    keyInputRef.current.focus();
+    refs.keyInput.current.focus();
   }
 
   function handleDelete() {
-    head.current.remove();
+    refs.head.current.remove();
     setTimeout(() => onChange(get()), 0);
   }
 
-  setTimeout(() => keyInputRef.current.focus(), 0);
+  setTimeout(() => refs.keyInput.current.focus(), 0);
 
   return (
-    <ObjectItem.Context.Provider value={{ get, focus }} ref={head}>
+    <ObjectItem.Context.Provider value={{ get, focus }} ref={refs.head}>
       <div class="flex gap-x-2">
         <div>
           <button onClick={handleDelete} class="border rounded px-2 bg-red-50">
@@ -456,13 +448,13 @@ function ObjectItem({ defaultKey, defaultValue, onChange }) {
             onChange={() => onChange(get())}
             onKeyUp={() => onChange(get())}
             class="border border-gray-300 rounded px-1"
-            ref={keyInputRef}
+            ref={refs.keyInput}
           />
         </div>
         <JsonEdit
           defaultValue={defaultValue}
           onChange={onChange}
-          ref={jsonEditRef}
+          ref={refs.jsonEdit}
         />
       </div>
     </ObjectItem.Context.Provider>

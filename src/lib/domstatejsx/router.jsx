@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash';
 import { createContext, findUp, useContext } from './context';
-import { useRefs } from './hooks';
+import { useRefProxy } from './hooks';
 
 function convertToPattern(path) {
   // /a/:b/c/:d => ^/a/(?<b>[^/]+)/c/(?<d>[^/]+)
@@ -10,12 +10,12 @@ function convertToPattern(path) {
 }
 
 export function Route({ path = '', end = false, NotFound, render }) {
-  const [head] = useRefs();
+  const refs = useRefProxy();
 
   setTimeout(() => {
     if (
-      head.current.parentElement &&
-      !useContext(head.current, Route.Context)
+      refs.head.current.parentElement &&
+      !useContext(refs.head.current, Route.Context)
     ) {
       // If I am the top Route, draw myself
       draw(location.pathname);
@@ -35,13 +35,16 @@ export function Route({ path = '', end = false, NotFound, render }) {
   let lastProps = undefined;
   function draw(pathname, props = {}) {
     // The powers that be decided that this I should draw myself
-    if (head.current.childElementCount === 0 || !isEqual(lastProps, props)) {
-      head.current.replaceChildren(render(props));
+    if (
+      refs.head.current.childElementCount === 0 ||
+      !isEqual(lastProps, props)
+    ) {
+      refs.head.current.replaceChildren(render(props));
     }
 
     // Lets see if any of my children should draw themselves
     let found = false;
-    useContext(head.current, Route.Context, { direction: 'down' }).forEach(
+    useContext(refs.head.current, Route.Context, { direction: 'down' }).forEach(
       ({
         path: childPath,
         end: childEnd,
@@ -49,7 +52,7 @@ export function Route({ path = '', end = false, NotFound, render }) {
         clear: childClear,
         isDirectChildOf: childIsDirectChildOf,
       }) => {
-        if (!childIsDirectChildOf(head.current)) {
+        if (!childIsDirectChildOf(refs.head.current)) {
           return;
         }
         const pattern = new RegExp(
@@ -72,9 +75,9 @@ export function Route({ path = '', end = false, NotFound, render }) {
 
   function renderNotFound() {
     if (NotFound) {
-      head.current.replaceChildren(<NotFound />);
+      refs.head.current.replaceChildren(<NotFound />);
     } else {
-      useContext(head.current, Route.Context).renderNotFound();
+      useContext(refs.head.current, Route.Context).renderNotFound();
     }
   }
 
@@ -84,7 +87,9 @@ export function Route({ path = '', end = false, NotFound, render }) {
     if (match) {
       draw(to.substring(match[0].length), match.groups || {});
     } else {
-      useContext(head.current, Route.Context).navigate(to, { initial: false });
+      useContext(refs.head.current, Route.Context).navigate(to, {
+        initial: false,
+      });
     }
     if (initial) {
       history.pushState({}, '', to);
@@ -92,19 +97,19 @@ export function Route({ path = '', end = false, NotFound, render }) {
   }
 
   function getPath() {
-    const parent = useContext(head.current, Route.Context);
+    const parent = useContext(refs.head.current, Route.Context);
     return parent ? parent.getPath() + path : path;
   }
 
   function clear() {
-    useContext(head.current, Link.Context, { direction: 'down' }).forEach(
+    useContext(refs.head.current, Link.Context, { direction: 'down' }).forEach(
       ({ removePopstateListener }) => removePopstateListener(),
     );
-    head.current.innerHTML = '';
+    refs.head.current.innerHTML = '';
   }
 
   function isDirectChildOf(parent) {
-    return findUp(head.current, Route.Context) === parent;
+    return findUp(refs.head.current, Route.Context) === parent;
   }
 
   return (
@@ -119,7 +124,7 @@ export function Route({ path = '', end = false, NotFound, render }) {
         getPath,
         isDirectChildOf,
       }}
-      ref={head}
+      ref={refs.head}
     >
       <div />
     </Route.Context.Provider>
@@ -128,7 +133,7 @@ export function Route({ path = '', end = false, NotFound, render }) {
 Route.Context = createContext();
 
 export function Link({ to, render = null, children }) {
-  const [head] = useRefs();
+  const refs = useRefProxy();
 
   function onClick(event) {
     if (to !== location.pathname) {
@@ -152,8 +157,8 @@ export function Link({ to, render = null, children }) {
         {render({ onClick, isActive })}
       </Link.Context.Provider>
     );
-    head.current.replaceWith(newHead);
-    head.current = newHead;
+    refs.head.current.replaceWith(newHead);
+    refs.head.current = newHead;
   }
 
   if (render !== null) {
@@ -167,7 +172,7 @@ export function Link({ to, render = null, children }) {
   return (
     <Link.Context.Provider
       value={{ rerender, removePopstateListener }}
-      ref={head}
+      ref={refs.head}
     >
       {render === null && <button onClick={onClick}>{children}</button>}
       {render !== null && render({ onClick, isActive })}
