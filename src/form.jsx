@@ -1,31 +1,23 @@
-import {
-  createContext,
-  useForm,
-  useRefs,
-  useTextContent,
-} from './lib/domstatejsx';
+import { useForm, useRefProxy, useTextContent } from './lib/domstatejsx';
+import Radio from './utils/Radio';
 
 export default function App() {
-  const [preRef] = useRefs();
-  const [, setPre] = useTextContent(preRef);
+  const refs = useRefProxy();
+  const [, setPre] = useTextContent(refs.pre);
 
   const { registerForm, register, registerError } = useForm({
     onSuccess: (data) => setPre('Success: ' + JSON.stringify(data, null, 2)),
     onError: (errors) => setPre('Errors: ' + JSON.stringify(errors, null, 2)),
+    validate: ({ username, gender }) => {
+      if (username === 'Bill' && gender === 'female') {
+        throw new Error("Bill is a boy's name");
+      }
+    },
   });
 
   return (
     <>
-      <form
-        {...registerForm({
-          validate: ({ username, gender }) => {
-            if (username === 'Bill' && gender === 'Female') {
-              throw new Error("Bill is a boy's name");
-            }
-          },
-        })}
-      >
-        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
+      <form {...registerForm()}>
         <p>
           Username:{' '}
           <input autoFocus {...register('username', { required: true })} />
@@ -37,7 +29,10 @@ export default function App() {
         <p>
           Gender:{' '}
           <Radio
-            options={['Male', 'Female']}
+            options={[
+              ['male', 'Male'],
+              ['female', 'Female'],
+            ]}
             {...register('gender', { required: true })}
           />
         </p>
@@ -45,46 +40,14 @@ export default function App() {
           style={{ display: 'none', color: 'red' }}
           {...registerError('gender')}
         />
+        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
         <p>
           <button>Submit</button>
         </p>
       </form>
       <p>
-        <pre ref={preRef} />
+        <pre ref={refs.pre} />
       </p>
     </>
   );
 }
-
-function Radio({ onChange, options }) {
-  const refs = [];
-  const ref = (r) => refs.push(r);
-
-  function get() {
-    return refs.find((ref) => ref.current.checked)?.current?.nextSibling
-      ?.textContent;
-  }
-
-  function set(value) {
-    refs.forEach(({ current }) => {
-      current.checked = current.nextSibling.textContent === value;
-    });
-  }
-
-  function handleClick(option) {
-    set(option);
-    onChange(option);
-  }
-
-  return (
-    <Radio.Context.Provider value={{ get, set }}>
-      {options.map((option) => (
-        <label>
-          <input type="radio" onClick={() => handleClick(option)} ref={ref} />
-          {option}
-        </label>
-      ))}
-    </Radio.Context.Provider>
-  );
-}
-Radio.Context = createContext();

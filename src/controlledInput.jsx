@@ -1,71 +1,48 @@
 import {
-  combineHooks,
-  createContext,
-  useRefs,
   useTextContent,
   useControlledInput,
+  useRefProxy,
 } from './lib/domstatejsx';
+import Radio from './utils/Radio';
 
 export default function App() {
-  const [inputRef, spanRef] = useRefs();
+  const refs = useRefProxy();
 
-  const [, set] = combineHooks(
-    useControlledInput(inputRef),
-    useTextContent(spanRef),
-  );
+  const [getRadio, setRadio] = useControlledInput(refs.radio);
+  const [, setSpan] = useTextContent(refs.span);
+
+  function refreshSpan() {
+    setSpan(getRadio());
+  }
+
+  setTimeout(refreshSpan, 0);
 
   return (
     <>
       <Radio
-        defaultValue="Three"
-        onChange={set}
-        options={['Zero', 'One', 'Two', 'Three']}
-        ref={inputRef}
+        defaultValue={3}
+        onChange={setSpan}
+        options={[
+          [0, 'Zero'],
+          [1, 'One'],
+          [2, 'Two'],
+          [3, 'Three'],
+        ]}
+        ref={refs.radio}
       />
       <p>
-        <button onClick={() => set('Two')}>Select "two"</button>
+        <button
+          onClick={() => {
+            setRadio(2);
+            refreshSpan();
+          }}
+        >
+          Select "two"
+        </button>
       </p>
       <p>
-        Selected Value: <span ref={spanRef} />
+        Selected Value: <span ref={refs.span} />
       </p>
     </>
   );
 }
-
-function Radio({ defaultValue = undefined, onChange, options }) {
-  const refs = [];
-  const ref = (r) => refs.push(r);
-
-  function get() {
-    return refs.find((ref) => ref.current.checked).current.nextSibling
-      .textContent;
-  }
-
-  function set(value) {
-    refs.forEach((ref) => (ref.current.checked = false));
-    refs.find(
-      (ref) => ref.current.nextSibling.textContent === value,
-    ).current.checked = true;
-  }
-
-  function handleClick(option) {
-    set(option);
-    onChange(option);
-  }
-
-  if (defaultValue !== undefined) {
-    setTimeout(() => handleClick(defaultValue), 0);
-  }
-
-  return (
-    <Radio.Context.Provider value={{ get, set }}>
-      {options.map((option) => (
-        <label>
-          <input ref={ref} type="radio" onClick={() => handleClick(option)} />
-          {option}
-        </label>
-      ))}
-    </Radio.Context.Provider>
-  );
-}
-Radio.Context = createContext();

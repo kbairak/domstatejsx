@@ -28,7 +28,7 @@ export default function App() {
     usePropertyBoolean(nextButton, 'disabled', true, false),
   );
 
-  const { fetch } = useQuery({
+  const { refetch } = useQuery({
     queryFn: (page = 1) => fakeGet(page),
     onStart: () => setLoading(true),
     onEnd: () => setLoading(false),
@@ -43,7 +43,7 @@ export default function App() {
     const { getPageNumber, getPageCount, showPage } = pageList.context;
     const currentPageNumber = getPageNumber();
     if (currentPageNumber === getPageCount() - 1) {
-      fetch(currentPageNumber + 2);
+      refetch(currentPageNumber + 2);
     } else {
       showPage((prev) => prev + 1);
     }

@@ -1,7 +1,7 @@
 import { EXPOSE } from './context';
 
 export function* useRefs() {
-  for (; ;) yield {};
+  for (;;) yield {};
 }
 
 export function useRefProxy() {
@@ -27,7 +27,7 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function(valueOrFunc) {
+  return function (valueOrFunc) {
     const value =
       valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
@@ -165,17 +165,24 @@ export function useErrorMessage(ref) {
 }
 
 export function useClassBoolean(ref, onValue, offValue) {
+  if (onValue === null) onValue = [];
+  else if (!Array.isArray(onValue)) onValue = [onValue];
+  if (offValue === null) offValue = [];
+  else if (!Array.isArray(offValue)) offValue = [offValue];
+
   function get() {
-    return ref.current.classList.contains(onValue);
+    return onValue.every((className) =>
+      ref.current.classList.contains(className),
+    );
   }
 
   function set(value) {
     if (value) {
-      ref.current.classList.remove(offValue);
-      ref.current.classList.add(onValue);
+      ref.current.classList.remove(...offValue);
+      ref.current.classList.add(...onValue);
     } else {
-      ref.current.classList.remove(onValue);
-      ref.current.classList.add(offValue);
+      ref.current.classList.remove(...onValue);
+      ref.current.classList.add(...offValue);
     }
   }
 

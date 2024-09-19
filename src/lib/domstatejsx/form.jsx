@@ -5,13 +5,13 @@
 
 export function useForm({
   when = 'onChange',
-  onStart = async () => { },
-  onSubmit = async () => { },
-  onSuccess = async () => { },
-  onError = async () => { },
-  onEnd = async () => { },
+  onStart = async () => {},
+  onSubmit = async () => {},
+  onSuccess = async () => {},
+  onError = async () => {},
+  onEnd = async () => {},
   fields,
-  validate = async () => { },
+  validate = async () => {},
   defaultValues = null,
 } = {}) {
   const fieldRefs = {};
@@ -113,27 +113,24 @@ export function useForm({
     return {
       onSubmit: async (event) => {
         event.preventDefault();
-
         await onStart(getData());
-
-        if (!(await _validate())) {
-          await onError(getErrors());
-          return;
-        }
-
-        try {
-          const data = getData();
-          const result = await onSubmit(data);
-          formErrorRefs.forEach((ref) => {
-            ref.current.innerText = '';
-            ref.current.style.setProperty('display', 'none');
-          });
-          await onSuccess(data, result);
-        } catch (e) {
-          formErrorRefs.forEach((ref) => {
-            ref.current.innerText = e.message;
-            ref.current.style.removeProperty('display');
-          });
+        if (await _validate()) {
+          try {
+            const data = getData();
+            const result = await onSubmit(data);
+            formErrorRefs.forEach((ref) => {
+              ref.current.innerText = '';
+              ref.current.style.setProperty('display', 'none');
+            });
+            await onSuccess(data, result);
+          } catch (e) {
+            formErrorRefs.forEach((ref) => {
+              ref.current.innerText = e.message;
+              ref.current.style.removeProperty('display');
+            });
+            await onError(getErrors());
+          }
+        } else {
           await onError(getErrors());
         }
         await onEnd(getData(), getErrors());
@@ -147,7 +144,7 @@ export function useForm({
     if (validate !== null) fieldData[name].validate = validate;
     if (!('required' in fieldData[name])) fieldData[name].required = false;
     if (!('validate' in fieldData[name]))
-      fieldData[name].validate = async () => { };
+      fieldData[name].validate = async () => {};
 
     return {
       ref: (r) => {

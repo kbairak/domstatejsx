@@ -4,7 +4,7 @@ import {
   useMutation,
   usePropertyBoolean,
   useQuery,
-  useRefs,
+  useRefProxy,
   useStyleBoolean,
 } from './lib/domstatejsx';
 
@@ -24,19 +24,19 @@ const fakeApi = {
 };
 
 export default function App() {
-  const [loadingRef, ulRef, submitRef] = useRefs();
+  const refs = useRefProxy();
 
   const [, setQueryIsLoading] = useStyleBoolean(
-    loadingRef,
+    refs.loading,
     'display',
     null,
     'none',
   );
-  const [, , resetMessages] = useList(ulRef, ({ message }) => (
+  const [, , resetMessages] = useList(refs.ul, ({ message }) => (
     <li>{message}</li>
   ));
   const [, setFormIsLoading] = usePropertyBoolean(
-    submitRef,
+    refs.submit,
     'disabled',
     true,
     false,
@@ -47,9 +47,8 @@ export default function App() {
       setQueryIsLoading(true);
     },
     queryFn: fakeApi.get,
-    onSuccess: (messages) => {
-      resetMessages(...messages.map((message) => ({ message })));
-    },
+    onSuccess: (messages) =>
+      resetMessages(...messages.map((message) => ({ message }))),
     onEnd: () => setQueryIsLoading(false),
   });
 
@@ -62,21 +61,26 @@ export default function App() {
   });
 
   const { registerForm, register, registerError, reset } = useForm({
-    onSubmit: async ({ message }) => {
-      setFormIsLoading(true);
-      await mutate(message);
-    },
+    onStart: () => setFormIsLoading(true),
+    onSubmit: ({ message }) => mutate(message),
     onEnd: () => setFormIsLoading(false),
   });
 
   return (
     <>
-      <p style={{ display: 'none' }} ref={loadingRef}>
+      <p style={{ display: 'none' }} ref={refs.loading}>
         Loading...
       </p>
-      <ul ref={ulRef} />
+      <ul ref={refs.ul} />
       <p>
-        <button onClick={refetch}>Refetch</button>
+        <button
+          onClick={() => {
+            resetMessages();
+            refetch();
+          }}
+        >
+          Refetch
+        </button>
       </p>
       <form {...registerForm()}>
         <p>
@@ -88,7 +92,7 @@ export default function App() {
           {...registerError('message')}
         />
         <p>
-          <button ref={submitRef}>Submit</button>
+          <button ref={refs.submit}>Submit</button>
         </p>
       </form>
     </>
