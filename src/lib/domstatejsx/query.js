@@ -14,10 +14,10 @@ export function useQuery({
       onSuccess(response);
     } catch (error) {
       onError(error);
-      onEnd();
       throw error;
+    } finally {
+      onEnd();
     }
-    onEnd();
   }
 
   if (enabled) setTimeout(() => refetch(...defaultArgs), 0);
@@ -39,10 +39,10 @@ export function useMutation({
       onSuccess(response);
     } catch (error) {
       onError(error);
-      onEnd();
       throw error;
+    } finally {
+      onEnd();
     }
-    onEnd();
   }
 
   return { mutate };

@@ -131,14 +131,12 @@ we can use `ref`s. They work similarly to React; the DOM element is assigned to
 the `.current` attribute of the `ref`.
 
 ```javascript
-import { useRefs } from 'domstatejsx';
-
 function Counter() {
-  const [countSpan] = useRefs();
+  const countSpanRef = {};
 
   function handleClick() {
-    const prevValue = parseInt(countSpan.current.textContent);
-    countSpan.current.textContent = `$(prevValue + 1)`;
+    const prevValue = parseInt(countSpanRef.current.textContent);
+    countSpanRef.current.textContent = `$(prevValue + 1)`;
   }
 
   return (
@@ -147,68 +145,121 @@ function Counter() {
         <button onClick={handleClick}>Click me</button>
       </div>
       <div>
-        Count: <span ref={countSpan}>0</span>
+        Count: <span ref={countSpanRef}>0</span>
       </div>
     </>
   );
 }
 
 document.body.append(<Counter />);
+```
+
+> When a `ref` prop is encountered in JSX, the produced DOM element will be added as the
+> `current` property of the "ref". The previous snippet is roughly equivalent to:
+>
+> ```javascript
+> function Counter() {
+>   function handleClick() {
+>     // ...
+>   }
+>
+>   countSpanRef = { current: <span>0</span> };
+>   return (
+>     <>
+>       <div>
+>         <button onClick={handleClick}>Click me</button>
+>       </div>
+>       <div>Count: {countSpanRef.current}</div>
+>     </>
+>   );
+> }
+> ```
+
+Since you will want to use refs a lot, there are helper function to create them:
+
+### `useRefs`
+
+```javascript
+const [ref1, ref2, ref3] = useRefs();
+
+// Rougly equivalent to
+
+const [ref1, ref2, ref3] = [{}, {}, {}];
 ```
 
 _(refs are simply empty objects, `useRefs` returns an endless list of refs)_
 
-Because we will be doing this kind of thing a lot, here is a helper "hook":
+### `useRefProxy`
 
-```javascript
-import { useRefs, useIntContent } from 'domstatejsx';
+`useRefProxy` creates refs lazily by using
+[Proxy objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy).
 
-function Counter() {
-  const [countSpan] = useRefs();
-  const [getCount, setCount] = useIntContent(countSpan);
+```diff
+ function Counter() {
+-  const countSpanRef = {};
++  const refs = useRefProxy();
 
-  function handleClick() {
-    const prevValue = getCount();
-    setCount(prevValue + 1);
-  }
+   function handleClick() {
+-    const prevValue = parseInt(countSpanRef.current.textContent);
++    const prevValue = parseInt(refs.countSpan.current.textContent);
+-    countSpanRef.current.textContent = `$(prevValue + 1)`;
++    refs.countSpan.current.textContent = `$(prevValue + 1)`;
+   }
 
-  return (
-    <>
-      <div>
-        <button onClick={handleClick}>Click me</button>
-      </div>
-      <div>
-        Count: <span ref={countSpan}>0</span>
-      </div>
-    </>
-  );
-}
+   return (
+     <>
+       <div>
+         <button onClick={handleClick}>Click me</button>
+       </div>
+       <div>
+-        Count: <span ref={countSpanRef}>0</span>
++        Count: <span ref={refs.countSpan}>0</span>
+       </div>
+     </>
+   );
+ }
+```
 
-document.body.append(<Counter />);
+## Changing the DOM through refs
+
+Because we will be using refs to modify the DOM a lot, here is a helper "hook":
+
+```diff
+ function Counter() {
+   const refs = useRefProxy();
++  const [getCount, setCount] = useIntContent(refs.countSpan);
+
+   function handleClick() {
+-    const prevValue = parseInt(refs.countSpan.current.textContent);
++    const prevValue = getCount();
+-    refs.countSpan.current.textContent = `$(prevValue + 1)`;
++    setCount(prevValue + 1);
+   }
+
+   return (
+     // ...
+   );
+ }
 ```
 
 Or simpler:
 
-```javascript
-import { useRefs, useIntContent } from 'domstatejsx';
+```diff
+ function Counter() {
+   const refs = useRefProxy();
+-  const [getCount, setCount] = useIntContent(refs.countSpan);
++  const [, setCount] = useIntContent(refs.countSpan);
 
-function Counter() {
-  const [countSpan] = useRefs();
-  const [, setCount] = useIntContent(countSpan);
+   function handleClick() {
+-    const prevValue = getCount();
+-    setCount(prevValue + 1)
++    setCount((prev) => prev + 1);
+   }
 
-  return (
-    <>
-      <div>
-        <button onClick={() => setCount((prev) => prev + 1)}> Click me</button>
-      </div>
-      <div>
-        Count: <span ref={countSpan}>0</span>
-      </div>
-    </>
-  );
-}
-
-document.body.append(<Counter />);
+   return (
+     // ...
+   );
+ }
 ```
 
 We have a lot of hooks like `useIntContent` that simplify inspecting and
@@ -219,134 +270,137 @@ modifying DOM elements; feel free to look them up in the
 
 Because component functions return simple DOM elements, it's hard to think of
 them as "alive", as if we are able to interact with them after they are
-created. In order to do that, we can use callbacks and context. Here is a
-simple TODO app:
+created. We have several options in order to achieve this, including ref contexts,
+context lookup and callbacks. We will talk about two scenarios:
+
+- A child component wants to invoke an action on a parent component, ie _upwards_
+- A parent component wants to invoke an action on a child component, ie _downwards_
+
+### Upwards, with callbacks
+
+You can interact with parent components with callbacks. Let's consider this:
 
 ```javascript
-function App() {
-  const [totalSpan, newTodoTextInput, todoList] = useRefs();
-  const [, setTotal] = useIntContent(totalSpan);
-  const [getNewTodoText, setNewTodoText] = useTextInput(newTodoTextInput);
-
-  // Invokes `Todo` and appends resulting DOM element to `todoList`
-  const [, addTodo] = useList(todoList, Todo);
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    if (!getNewTodoText()) return;
-    addTodo({ text: getNewTodoText() });
-    setNewTodoText('');
-    setTotal((prev) => prev + 1);
-  }
-
+export default function App() {
   return (
     <>
-      <p>
-        <span ref={totalSpan}>0</span> TODOs
-      </p>
-      <form onSubmit={handleSubmit}>
-        <input ref={newTodoTextInput} />
-        <button>Add</button>
-      </form>
-      <ul ref={todoList} />
+      <span>0</span>
+      <ButtonContainer />
     </>
   );
 }
 
-function Todo({ text }) {
-  function handleDelete() {
-    head.current.remove();
-  }
-
-  return (
-    <li ref={head}>
-      <button onClick={handleDelete}>Delete</button>
-      {text}
-    </li>
-  );
+function ButtonContainer() {
+  return <button>Click me</button>;
 }
-
-document.body.append(<App />);
 ```
 
-### Callbacks
-
-What we want is to make sure that whenever a TODO is removed, the "total"
-counter is decreased by 1. Here is how we can do it with a callback:
+Lets add a function that increments the counter in the parent component:
 
 ```diff
- function App() {
-   // ...
-
-   function handleSubmit(event) {
-     event.preventDefault();
-     if (!getNewTodoText()) return;
--    addTodo({ text: getNewTodoText() });
-+    addTodo({
-+      text: getNewTodoText(),
-+      onDelete: () => setTotal((prev) => prev - 1),
-+    });
-     setNewTodoText('');
-     setTotal((prev) => prev + 1);
-   }
+ export default function App() {
++  const refs = useRefProxy();
++  const [, setCount] = useIntContent(refs.span);
++
++  function increment() {
++    setCount((prev) => prev + 1);
++  }
 
    return (
-     // ...
+     <>
+-      <span>0</span>
++      <span ref={refs.span}>0</span>
+       <ButtonContainer />
+     </>
    );
  }
 
--function Todo({ text }) {
-+function Todo({ text, onDelete }) {
-   function handleDelete() {
-     head.current.remove()
-+    onDelete()
-   }
-
+ function ButtonContainer() {
    return (
-     // ...
+     <button>Click me</button>
    );
  }
 ```
 
-### "Upwards" context
-
-The other way is to use context:
+And pass it as a prop to the child component
 
 ```diff
- function App() {
-   const [totalSpan, newTodoTextInput, todoList] = useRefs();
-   const [, setTotal] = useIntContent(totalSpan);
-   const [getNewTodoText, setNewTodoText] = useTextInput(newTodoTextInput);
-   const [, addTodo] = useList(todoList, Todo);
+ export default function App() {
+   const refs = useRefProxy();
+   const [, setCount] = useIntContent(refs.span);
 
-   function handleSubmit(event) {
-     // ...
+   function increment() {
+     setCount((prev) => prev + 1);
+   }
+
+   return (
+     <>
+       <span ref={refs.span}>0</span>
+-      <ButtonContainer />
++      <ButtonContainer onClick={increment} />
+     </>
+   );
+ }
+
+-function ButtonContainer() {
++function ButtonContainer({ onClick }) {
+   return (
+-    <button>Click me</button>
++    <button onClick={onClick}>Click me</button>
+   );
+ }
+```
+
+### Upwards, with context lookup
+
+Alternatively you can find a parent component's context in order to interact with it.
+Lets start by having the parent component _expose_ its context.
+
+```diff
+ export default function App() {
+   const refs = useRefProxy();
+   const [, setCount] = useIntContent(refs.span);
+
+   function increment() {
+     setCount((prev) => prev + 1);
    }
 
    return (
 -    <>
-+    <App.Context.Provider value={{ onDelete: () => setTotal((prev) => prev - 1) }}>
-       <p><span ref={totalSpan}>0</span> TODOs</p>
-       <form onSubmit={handleSubmit}>
-         <input ref={newTodoTextInput} />
-         <button>Add</button>
-       </form>
-       <ul ref={todoList} />
++    <App.Context.Provider value={{ increment }}>
+       <span ref={refs.span}>0</span>
+       <ButtonContainer />
 -    </>
 +    </App.Context.Provider>
    );
  }
 +App.Context = createContext();
 
- function Todo({ text }) {
-   function handleDelete() {
-     head.current.remove()
-+    const { onDelete } = useContext(head.current, App.Context);
-+    onDelete();
-   }
+ function ButtonContainer() {
+   return (
+     <button>Click me</button>
+   );
+ }
+```
+
+Then, you can _find_ the context from the child component:
+
+```diff
+ export default function App() {
+   // ...
+ App.Context = createContext();
+
+ function ButtonContainer() {
++  const refs = useRefProxy();
++
++  function handleClick() {
++    const { increment } = useContext(refs.head.current, App.Context);
++    increment();
++  }
 
    return (
-     // ...
+-    <button>Click me</button>
++    <button onClick={handleClick} ref={refs.head}>Click me</button>
    );
  }
 ```
@@ -356,135 +410,138 @@ element as the first argument to use as the starting point for its search. Then
 it goes "up" until it finds a node with an `App.Context` context associated
 with it and returns its value.
 
-### "Downwards" context
+### Downwards, accessing context through a _ref_
 
-You can also search for context "downwards":
-
-```diff
- function App() {
-   const [totalSpan, newTodoTextInput, todoList] = useRefs();
-   const [, setTotal] = useIntContent(totalSpan);
-   const [getNewTodoText, setNewTodoText] = useTextInput(newTodoTextInput);
-   const [, addTodo] = useList(todoList, Todo);
-
-   function handleSubmit(event) {
-     // ...
-   }
-
-+  function handleTurnUppercase() {
-+     useContext(todoList.current, Todo.Context, { direction: 'down' })
-+       .forEach(({ turnUppercase }) => { turnUppercase(); });
-+  }
-
-   return (
-     <>
-       <p><span ref={totalSpan}>0</span> TODOs</p>
-+      <p><button onClick={handleTurnUppercase}>Turn TODOs to uppercase</button></p>
-       <form onSubmit={handleSubmit}>
-         <input ref={newTodoTextInput} />
-         <button>Add</button>
-       </form>
-       <ul ref={todoList} />
-     </>
-   );
- }
-
- function Todo({ text }) {
-+  const [textSpan] = useRefs();
-+  const [, setText] = useTextContent();
-
-   function handleDelete() {
-     head.current.remove()
-   }
-
-   return (
-+    <Todo.Context.Provider
-+      value={{ turnUppercase: () => setText((prev) => prev.toUpperCase()) }}
-+    >
-       <li ref={head}>
-         <button onClick={handleDelete}>Delete</button>
--        {text}
-+        <span ref={textSpan}>{text}</span>
-       </li>
-+    </Todo.Context.Provider>
-   );
- }
-+Todo.Context = createContext();
-```
-
-When using `{ direction: 'down' }`, `useContext` will search the DOM tree
-"below" to find all DOM elements decorated with the `Todo.Context` provider and
-return a list with all the contexts it finds.
-
-### Getting context from `ref`s
-
-There is another way to get the context of an element that is below. When you
-use a `ref` on a component that has a context as its top-level DOM element,
-then, apart from the `.current` attribute we have already discussed, your `ref`
-will have a `.context` attribute with the value of that context:
+Lets reverse our example:
 
 ```javascript
-function App() {
-  const [resettableInput] = useRefs();
-
+export default function App() {
   return (
     <>
-      <ResettableInput ref={resettableInput} />
-      <button onClick={() => resettableInput.context.reset()}>Reset</button>
+      <Counter />
+      <button>Click me</button>
     </>
   );
 }
 
-function ResettableInput() {
-  const [input] = useRefs();
-  const [, setInput] = useTextInput(input);
-
-  function reset() {
-    setInput('');
-  }
-
-  return (
-    <ResettableInput.Context.Provider value={{ reset }}>
-      <input ref={input} />
-    </ResettableInput.Context.Provider>
-  );
+function Counter() {
+  return <span>0</span>;
 }
-ResettableInput.Context = createContext();
 ```
 
-One more thing: The `useList` hook we demonstrated before also has a getter
-function. This getter returns a list of `refs`, which means that you can access
-the contexts of the elements you created using the "adder":
+We will start by having the child component expose its functionality through context:
 
 ```diff
- function App() {
-   const [totalSpan, newTodoTextInput, todoList] = useRefs();
-   const [, setTotal] = useIntContent(totalSpan);
-   const [getNewTodoText, setNewTodoText] = useTextInput(newTodoTextInput);
--  const [, addTodo] = useList(todoList, Todo);
-+  const [getTodos, addTodo] = useList(todoList, Todo);
-
-   function handleSubmit(event) {
-     // ...
-   }
-
-   function handleTurnUppercase() {
--    useContext(todoList.current, Todo.Context, { direction: 'down' })
--      .forEach(({ turnUppercase }) => { turnUppercase(); });
-+    getTodos().forEach(({ context: { turnUppercase } }) => { turnUppercase(); });
-
-   }
-
+ export default function App() {
    return (
-     // ...
+     <>
+       <Counter/>
+       <button>Click me</button>
+     </>
    );
  }
+
+ function Counter() {
++  const refs = useRefProxy();
++  const [, setSpan] = useIntContent(refs.span);
+
++  function increment() {
++    setSpan((prev) => prev + 1);
++  }
+
+   return (
++    <Counter.Context.Provider value={{ increment }}>
+-      <span>0</span>
++      <span ref={refs.span}>0</span>
++    </Counter.Context.Provider>
+   );
+ }
++Counter.Context = createContext();
 ```
 
-We usually "attach" the context definition to the component function. Since
-context is the way to talk to a component that is "alive", when we import such
-a component from another file, it makes sense to have an easy way to import its
-context along with it.
+Then, the parent component can attach a _ref_ to the child component and access its
+context:
+
+```diff
+ export default function App() {
++  const refs = useRefProxy();
+
++  function handleClick() {
++    refs.counter.context.increment()
++  }
+
+   return (
+     <>
+-      <Counter/>
++      <Counter ref={refs.counter}/>
+-      <button>Click me</button>
++      <button onClick={handleClick}>Click me</button>
+     </>
+   );
+ }
+
+ function Counter() {
+   // ...
+ }
+ Counter.Context = createContext();
+```
+
+### Downwards, with context lookup
+
+You can also search for context _downwards_. This is especially helpful if you want to
+affect many child components at the same time:
+
+```javascript
+export default function App() {
+  return (
+    <>
+      <Counter />
+      <Counter />
+      <Counter />
+      // ...
+      <button>Click me</button>
+    </>
+  );
+}
+
+function Counter() {
+  // ...
+}
+Counter.Context = createContext();
+```
+
+```diff
+ export default function App() {
++  const refs = useRefProxy();
+
++  function handleClick() {
++    useContext(refs.head.current, Counter.Counter, { direction: 'down' }).forEach(
++      ({ increment }) => increment(),
++    );
++  }
+
+   return (
+-    <>
++    <div ref={refs.head}>
+       <Counter/>
+       <Counter/>
+       <Counter/>
+       // ...
+-      <button>Click me</button>
++      <button onClick={handleClick}>Click me</button>
+-    </>
++    </div>
+   );
+ }
+
+ function Counter() {
+   // ...
+ }
+ Counter.Context = createContext();
+```
+
+`useContext` with the `{ direction: 'down' }` option searches the DOM under the starting
+node and returns a list of found contexts.
 
 ## Other utilities
 
@@ -508,11 +565,11 @@ APIs. Their design has been inspired by the
   fetched data
 - `onError`: function that runs after a failed fetching; it receives the error
   object
-- `active`: boolean (default true), determines if the query will run once the
+- `enabled`: boolean (default true), determines if the query will run once the
   moment it is defined
 
-`useQuery` returns a query object with a `fetch` method you can use to trigger
-a fetch operation. The arguments to `fetch` will be passed on to `queryFn`.
+`useQuery` returns a query object with a `refetch` method you can use to trigger
+a fetch operation. The arguments to `refetch` will be passed on to `queryFn`.
 
 Sample usage:
 
@@ -522,7 +579,7 @@ function App() {
   const [, setIsLoading] = usePropertyBoolean(button, 'disabled', true, false);
   const [, setParagraph] = useTextContent(paragraph);
 
-  const { fetch } = useQuery({
+  const { refetch } = useQuery({
     queryFn: async () => {
       const response = await fetch(...);
       return await response.json();
@@ -531,12 +588,12 @@ function App() {
     onEnd: () => setIsLoading(false),
     onSuccess: ({ message }) => setParagraph(message),
     onError: () => setParagraph('Something went wrong'),
-    active: false,
+    enabled: false,
   });
 
   return (
     <>
-      <button onClick={fetch} ref={button}>Fetch data</button>
+      <button onClick={refetch} ref={button}>Fetch data</button>
       <p ref={paragraph} />
     </>
   );
@@ -925,7 +982,8 @@ change. We can also change the radio's selection by clicking the button.
 
 # Testing
 
-You can test domstatejsx components using [vitest](https://vitejs.dev/) and [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/intro).
+You can test domstatejsx components using [vitest](https://vitejs.dev/) and
+[@testing-library/dom](https://testing-library.com/docs/dom-testing-library/intro).
 
 1. Install the packages:
 
@@ -953,7 +1011,7 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and [@te
    npx vitest
    ```
 
-   of add a test script to `package.json`
+   or add a test script to `package.json`
 
    ```json
    {
@@ -1382,5 +1440,5 @@ Routing:
 
 Context:
 
-- [ ] Test with different contents of `<Provider>`s
+- [x] Test with different contents of `<Provider>`s
 - [x] See if we can avoid extra `<div>`s with fragments
