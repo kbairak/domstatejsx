@@ -23,11 +23,32 @@ export default function App() {
 
   return (
     <>
-      <div>
-        <button onClick={handleExpandAll}>Expand All</button>
-        <button onClick={handleCollapseAll}>Collapse all</button>
-        <button onClick={handleTriggerItem2}>Trigger item 2</button>
-        <button onClick={handleShowItem2}>Show item 2</button>
+      <div class="flex gap-x-1 m-2">
+        {/* row of buttons */}
+        <button
+          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
+          onClick={handleExpandAll}
+        >
+          Expand All
+        </button>
+        <button
+          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
+          onClick={handleCollapseAll}
+        >
+          Collapse all
+        </button>
+        <button
+          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
+          onClick={handleTriggerItem2}
+        >
+          Trigger item 2
+        </button>
+        <button
+          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
+          onClick={handleShowItem2}
+        >
+          Show item 2
+        </button>
       </div>
       <Accordion ref={refs.accordion}>
         <Accordion.Item trigger="trigger 1" id="1">
@@ -89,6 +110,7 @@ Accordion.Context = createContext();
 
 function AccordionItem({
   trigger,
+  renderTrigger,
   id: defaultId,
   defaultHidden = true,
   children,
@@ -114,7 +136,11 @@ function AccordionItem({
       ref={refs.head}
     >
       <div>
-        <button onClick={handleTrigger}>{trigger}</button>
+        {trigger ? (
+          <button onClick={handleTrigger}>{trigger}</button>
+        ) : (
+          renderTrigger(handleTrigger)
+        )}
       </div>
       <div
         style={{ display: defaultHidden ? 'none' : null }}
