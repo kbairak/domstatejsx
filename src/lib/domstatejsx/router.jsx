@@ -135,7 +135,14 @@ Route.Context = createContext();
 export function Link({ to, render = null, children }) {
   const refs = useRefProxy();
 
+  function _findTo() {
+    return to.startsWith('.')
+      ? useContext(refs.head.current, Route.Context).getPath() + to.substring(1)
+      : to;
+  }
+
   function onClick(event) {
+    const to = _findTo();
     if (to !== location.pathname) {
       useContext(event.target, Route.Context).navigate(to, { initial: true });
       useContext(document.body, Link.Context, { direction: 'down' }).forEach(
@@ -145,7 +152,7 @@ export function Link({ to, render = null, children }) {
   }
 
   function isActive() {
-    return location.pathname === to;
+    return !!refs.head.current && location.pathname === _findTo();
   }
 
   function rerender() {
@@ -160,6 +167,7 @@ export function Link({ to, render = null, children }) {
     refs.head.current.replaceWith(newHead);
     refs.head.current = newHead;
   }
+  setTimeout(rerender, 0);
 
   if (render !== null) {
     window.addEventListener('popstate', rerender);

@@ -13,122 +13,38 @@ import Router from './router';
 import Todos from './todos';
 
 function App() {
+  function Button({ to, children }) {
+    return (
+      <Link
+        to={to}
+        render={({ onClick }) => (
+          <button
+            class="hover:text-fuchsia-600 transition-transform hover:scale-110"
+            onClick={onClick}
+          >
+            {children}
+          </button>
+        )}
+      />
+    );
+  }
+
   return (
     <Route
       path=""
       render={() => (
         <>
           <div class="bg-slate-900 text-white px-10 p-4 flex gap-x-4">
-            <Link
-              to="/accordion"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Accordion
-                </button>
-              )}
-            />
-            <Link
-              to="/alternativeRef"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Alternative Ref
-                </button>
-              )}
-            />
-            <Link
-              to="/controlledInput"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Controlled
-                </button>
-              )}
-            />
-            <Link
-              to="/fakeApi"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Fake API
-                </button>
-              )}
-            />
-            <Link
-              to="/form"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Form
-                </button>
-              )}
-            />
-            <Link
-              to="/jsonEdit"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  JSON
-                </button>
-              )}
-            />
-            <Link
-              to="/pagination"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Pagination
-                </button>
-              )}
-            />
-            <Link
-              to="/panel"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Panel
-                </button>
-              )}
-            />
-            <Link
-              to="/router"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Router
-                </button>
-              )}
-            />
-            <Link
-              to="/todos"
-              render={({ onClick }) => (
-                <button
-                  class="hover:text-fuchsia-600 transition-transform hover:scale-110"
-                  onClick={onClick}
-                >
-                  Todos
-                </button>
-              )}
-            />
+            <Button to="/accordion">Accordion</Button>
+            <Button to="/alternativeRef">Alternative Ref</Button>
+            <Button to="/controlledInput">Controlled Input</Button>
+            <Button to="/fakeApi">Fake API</Button>
+            <Button to="/form">Form</Button>
+            <Button to="/jsonEdit">JSON Edit</Button>
+            <Button to="/pagination">Pagination</Button>
+            <Button to="/panel">Panel</Button>
+            <Button to="/router">Router</Button>
+            <Button to="/todos">Todos</Button>
           </div>
           <Route path="/" end render={() => ''} />
           <Route path="/accordion" end render={Accordion} />

@@ -1,5 +1,3 @@
-import './tailwind.css';
-
 import {
   combineHooks,
   createContext,
@@ -98,7 +96,6 @@ App.Context = createContext();
 
 function Todo({ text, done = false }) {
   const refs = useRefProxy();
-  const id = crypto.randomUUID();
 
   const [, setIsEditing] = combineHooks(
     useClassBoolean(refs.textSpan, 'hidden', null),
@@ -137,6 +134,7 @@ function Todo({ text, done = false }) {
     save();
   }
 
+  const id = crypto.randomUUID();
   function handleToggleEdit() {
     useContext(refs.head.current, App.Context).onToggleEdit(id);
   }

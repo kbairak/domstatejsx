@@ -5,6 +5,14 @@ import {
   useStyleBoolean,
 } from './lib/domstatejsx';
 
+function Button({ onClick, children }) {
+  return (
+    <button class="transition-transform hover:scale-110" onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
 export default function App() {
   const refs = useRefProxy();
 
@@ -22,38 +30,21 @@ export default function App() {
   }
 
   return (
-    <>
-      <div class="flex gap-x-1 m-2">
-        {/* row of buttons */}
-        <button
-          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
-          onClick={handleExpandAll}
-        >
-          Expand All
-        </button>
-        <button
-          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
-          onClick={handleCollapseAll}
-        >
-          Collapse all
-        </button>
-        <button
-          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
-          onClick={handleTriggerItem2}
-        >
-          Trigger item 2
-        </button>
-        <button
-          class="hover:text-fuchsia-600 transition-transform hover:scale-110 px-2 border rounded"
-          onClick={handleShowItem2}
-        >
-          Show item 2
-        </button>
+    <div class="container mx-auto">
+      {/* row of buttons */}
+      <div class="flex gap-x-2 border p-2 rounded-md bg-slate-300 mt-2">
+        <Button onClick={handleExpandAll}>Expand All</Button>
+        <Button onClick={handleCollapseAll}>Collapse all</Button>
+        <Button onClick={handleTriggerItem2}>Trigger item 2</Button>
+        <Button onClick={handleShowItem2}>Show item 2</Button>
+        <div class="grow" />
       </div>
       <Accordion ref={refs.accordion}>
-        <Accordion.Item trigger="trigger 1" id="1">
-          Content 1
-        </Accordion.Item>
+        <div class="border rounded p-4">
+          <Accordion.Item trigger="trigger 1" id="1">
+            Content 1
+          </Accordion.Item>
+        </div>
         <Accordion.Item trigger="trigger 2" id="2">
           Content 2
         </Accordion.Item>
@@ -61,7 +52,7 @@ export default function App() {
           Content 3
         </Accordion.Item>
       </Accordion>
-    </>
+    </div>
   );
 }
 

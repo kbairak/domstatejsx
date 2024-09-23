@@ -55,6 +55,7 @@ export default function App() {
     mutationFn: fakeApi.post,
     onSuccess: () => {
       reset();
+      resetMessages();
       refetch();
     },
   });

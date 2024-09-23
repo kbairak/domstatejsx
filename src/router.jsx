@@ -7,7 +7,7 @@ export default function App() {
         <>
           <div>
             <Link
-              to="/router"
+              to="."
               render={({ onClick, isActive }) => (
                 <button
                   onClick={onClick}
@@ -18,7 +18,7 @@ export default function App() {
               )}
             />
             <Link
-              to="/router/about"
+              to="./about"
               render={({ onClick, isActive }) => (
                 <button
                   onClick={onClick}
@@ -29,7 +29,7 @@ export default function App() {
               )}
             />
             <Link
-              to="/router/pages"
+              to="./pages"
               render={({ onClick, isActive }) => (
                 <button
                   onClick={onClick}
@@ -64,7 +64,7 @@ function Pages() {
       <h1>This is pages</h1>
       <div>
         <Link
-          to="/router/pages/1"
+          to="./1"
           render={({ onClick, isActive }) => (
             <button
               onClick={onClick}
@@ -75,7 +75,7 @@ function Pages() {
           )}
         />
         <Link
-          to="/router/pages/2"
+          to="./2"
           render={({ onClick, isActive }) => (
             <button
               onClick={onClick}
@@ -86,7 +86,7 @@ function Pages() {
           )}
         />
         <Link
-          to="/router/pages/3"
+          to="./3"
           render={({ onClick, isActive }) => (
             <button
               onClick={onClick}
