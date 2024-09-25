@@ -27,6 +27,9 @@ class Context {
         if (
           records.find((record) =>
             [...record.removedNodes].find((n) => n === node),
+          ) &&
+          !records.find((record) =>
+            [...record.addedNodes].find((n) => n === node),
           )
         ) {
           delete EXPOSE[providerUuid];
@@ -76,14 +79,13 @@ export function useContext(
 
 export function getRef(current) {
   const result = { current };
-  const found = Object.entries(current.dataset || {}).find(
+  const contexts = Object.entries(current.dataset || {}).filter(
     ([key]) => key.length === 39 && key.startsWith('context'),
   );
-  if (found) {
-    const [, providerUuid] = found;
-    if (providerUuid in EXPOSE) {
-      result.context = EXPOSE[providerUuid];
-    }
+  if (contexts.length) {
+    result.context = Object.assign(
+      ...contexts.map(([, providerUuid]) => EXPOSE[providerUuid] || {}),
+    );
   }
   return result;
 }

@@ -1,7 +1,7 @@
 import { getRef } from './context';
 
 export function* useRefs() {
-  for (; ;) yield {};
+  for (;;) yield {};
 }
 
 export function useRefProxy() {
@@ -27,7 +27,7 @@ export function combineHooks(...hooks) {
 }
 
 function acceptsFunc(set, get) {
-  return function(valueOrFunc) {
+  return function (valueOrFunc) {
     const value =
       valueOrFunc instanceof Function ? valueOrFunc(get()) : valueOrFunc;
     set(value);
@@ -212,17 +212,10 @@ export function useList(ref, getComponent) {
     add(...args);
   }
 
-  const observer = new MutationObserver((records) => {
-    records.forEach((record) => {
-      record.removedNodes.forEach((node) => {
-        const index = refs.findIndex(({ current }) => current === node);
-        if (index !== -1) refs.splice(index, 1);
-      });
-    });
-  });
-
   setTimeout(() => {
-    observer.observe(ref.current, { childList: true });
+    new MutationObserver(() => {
+      refs.splice(0, refs.length, ...[...ref.current.childNodes].map(getRef));
+    }).observe(ref.current, { childList: true });
     ref.current.childNodes.forEach((node) => refs.push(getRef(node)));
   }, 0);
 

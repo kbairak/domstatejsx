@@ -50,6 +50,31 @@ export default function App() {
     );
   }
 
+  function move(srcId, dstId) {
+    const srcIndex = getTodos().findIndex(
+      ({ context: { id } }) => id === srcId,
+    );
+    const dstIndex = getTodos().findIndex(
+      ({ context: { id } }) => id === dstId,
+    );
+
+    const srcNode = getTodos()[srcIndex].current;
+    const dstNode = getTodos()[dstIndex].current;
+
+    if (srcIndex > dstIndex) {
+      refs.todoList.current.insertBefore(srcNode, dstNode);
+    } else {
+      refs.todoList.current.insertBefore(srcNode, dstNode.nextSibling);
+    }
+  }
+
+  function handleShuffle() {
+    for (let i = getTodos().length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      move(getTodos()[i].context.id, getTodos()[j].context.id);
+    }
+  }
+
   function save() {
     localStorage.setItem(
       'todos',
@@ -69,14 +94,22 @@ export default function App() {
   }, 0);
 
   return (
-    <App.Context.Provider value={{ onDelete, onDone, onToggleEdit, save }}>
+    <App.Context.Provider
+      value={{ onDelete, onDone, onToggleEdit, move, save }}
+    >
       <div class="max-w-[64rem] mx-auto">
         <h1 class="text-2xl">My Todo app</h1>
         <h2 class="text-xl">
           Summary{' '}
           <small>
             Total: <span ref={refs.totalSpan}>0</span>, Done:{' '}
-            <span ref={refs.doneSpan}>0</span>
+            <span ref={refs.doneSpan}>0</span>{' '}
+            <button
+              onClick={handleShuffle}
+              class="px-1 border rounded bg-slate-100"
+            >
+              Shuffle
+            </button>
           </small>
         </h2>
         <form onSubmit={handleAdd} class="border rounded-md p-4 flex gap-x-8">
@@ -127,6 +160,8 @@ function Todo({ text, done = false }) {
     ],
   );
 
+  const [, setDotted] = useClassBoolean(refs.label, 'border-dashed', null);
+
   function handleDelete() {
     const { onDelete, save } = useContext(refs.head.current, App.Context);
     onDelete(isDone());
@@ -155,8 +190,25 @@ function Todo({ text, done = false }) {
       value={{ getText, isDone, id, toggleForm }}
       ref={refs.head}
     >
-      <li>
-        <label class="flex gap-x-2 p-1 m-1 border rounded-sm">
+      <li
+        draggable="true"
+        onDragStart={(e) => e.dataTransfer.setData('text/plain', id)}
+        onDragEnter={() => setDotted(true)}
+        onDragLeave={() => setDotted(false)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          useContext(refs.head.current, App.Context).move(
+            e.dataTransfer.getData('text/plain'),
+            id,
+          );
+          setDotted(false);
+        }}
+      >
+        <label
+          class="flex gap-x-2 p-1 m-1 border-2 rounded-sm"
+          ref={refs.label}
+        >
           <div class="flex gap-x-3 px-2 border rounded-md divide-x">
             <input
               type="checkbox"

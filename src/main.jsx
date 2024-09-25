@@ -60,7 +60,6 @@ function App() {
         </>
       )}
       NotFound={() => (
-        // Full screen with dark background and big white "Page not found" message in the center
         <div class="fixed inset-0 bg-slate-700 text-white text-center text-6xl p-16">
           Page not found
         </div>
