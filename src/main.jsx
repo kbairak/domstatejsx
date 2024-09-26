@@ -2,15 +2,16 @@ import './tailwind.css';
 import { Link, Route } from './lib/domstatejsx';
 
 import Accordion from './accordion';
-import AlternativeRef from './alternativeRef';
 import ControlledInput from './controlledInput';
 import FakeApi from './fakeApi';
 import Form from './form';
+import Home from './home';
 import JsonEdit from './jsonEdit';
 import Pagination from './pagination';
 import Panel from './panel';
 import Router from './router';
 import Todos from './todos';
+import Pager from './pager';
 
 function App() {
   function Button({ to, children }) {
@@ -35,8 +36,8 @@ function App() {
       render={() => (
         <>
           <div class="bg-slate-900 text-white px-10 p-4 flex gap-x-4">
+            <Button to="/home">Home</Button>
             <Button to="/accordion">Accordion</Button>
-            <Button to="/alternativeRef">Alternative Ref</Button>
             <Button to="/controlledInput">Controlled Input</Button>
             <Button to="/fakeApi">Fake API</Button>
             <Button to="/form">Form</Button>
@@ -45,10 +46,11 @@ function App() {
             <Button to="/panel">Panel</Button>
             <Button to="/router">Router</Button>
             <Button to="/todos">Todos</Button>
+            <Button to="/pager">Pager</Button>
           </div>
           <Route path="/" end render={() => ''} />
+          <Route path="/home" end render={Home} />
           <Route path="/accordion" end render={Accordion} />
-          <Route path="/alternativeRef" end render={AlternativeRef} />
           <Route path="/controlledInput" end render={ControlledInput} />
           <Route path="/fakeApi" end render={FakeApi} />
           <Route path="/form" end render={Form} />
@@ -57,6 +59,7 @@ function App() {
           <Route path="/panel" end render={Panel} />
           <Route path="/router" render={Router} />
           <Route path="/todos" end render={Todos} />
+          <Route path="/pager" end render={Pager} />
         </>
       )}
       NotFound={() => (
