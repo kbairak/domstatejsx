@@ -213,9 +213,9 @@ export function useList(ref, getComponent) {
   }
 
   setTimeout(() => {
-    new MutationObserver(() => {
-      refs.splice(0, refs.length, ...[...ref.current.childNodes].map(getRef));
-    }).observe(ref.current, { childList: true });
+    new MutationObserver(() =>
+      refs.splice(0, refs.length, ...[...ref.current.childNodes].map(getRef)),
+    ).observe(ref.current, { childList: true });
     ref.current.childNodes.forEach((node) => refs.push(getRef(node)));
   }, 0);
 
