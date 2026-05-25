@@ -1,5 +1,5 @@
 import './tailwind.css';
-import { Link, Route } from './lib/domstatejsx';
+import { Link, Route } from '../domstatejsx';
 
 import Accordion from './accordion';
 import ControlledInput from './controlledInput';

@@ -6,15 +6,15 @@ import {
   useQuery,
   useRefProxy,
   useStyleBoolean,
-} from './lib/domstatejsx';
+} from '../domstatejsx';
 
 const fakeApi = {
   messages: ['a@b.c', 'd@e.f'],
-  get: async () => {
+  get: async (): Promise<string[]> => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     return fakeApi.messages;
   },
-  post: async (newMessage) => {
+  post: async (newMessage: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     if (newMessage.indexOf('@') === -1) {
       throw new Error('Invalid email address');
@@ -32,7 +32,7 @@ export default function App() {
     null,
     'none',
   );
-  const [, , resetMessages] = useList(refs.ul, (message) => <li>{message}</li>);
+  const [, , resetMessages] = useList(refs.ul, (message: string) => <li>{message}</li>);
   const [, setFormIsLoading] = usePropertyBoolean(
     refs.submit,
     'disabled',
@@ -61,9 +61,9 @@ export default function App() {
   });
 
   const { registerForm, register, registerError, reset } = useForm({
-    onStart: () => setFormIsLoading(true),
-    onSubmit: ({ message }) => mutate(message),
-    onEnd: () => setFormIsLoading(false),
+    onStart: async () => { setFormIsLoading(true); },
+    onSubmit: async (data) => { await mutate(data.message); },
+    onEnd: async () => { setFormIsLoading(false); },
   });
 
   return (
@@ -82,14 +82,14 @@ export default function App() {
           Refetch
         </button>
       </p>
-      <form {...registerForm()}>
+      <form {...(registerForm() as any)}>
         <p>
-          Message: <input {...register('message', { required: true })} />
+          Message: <input {...(register('message', { required: true }) as any)} />
         </p>
-        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
+        <p style={{ display: 'none', color: 'red' }} {...(registerError() as any)} />
         <p
           style={{ display: 'none', color: 'red' }}
-          {...registerError('message')}
+          {...(registerError('message') as any)}
         />
         <p>
           <button ref={refs.submit}>Submit</button>

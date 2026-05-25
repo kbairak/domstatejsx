@@ -6,9 +6,9 @@ import {
   useQuery,
   useRefProxy,
   useStyleBoolean,
-} from './lib/domstatejsx';
+} from '../domstatejsx';
 
-async function fakeGet(page) {
+async function fakeGet(page: number): Promise<string[]> {
   await new Promise((resolve) => setTimeout(resolve, 400));
   return [...Array(10)].map((_, i) => `product ${(page - 1) * 10 + i + 1}`);
 }
@@ -45,14 +45,14 @@ export default function App() {
     if (currentPageNumber === getPageCount() - 1) {
       refetch(currentPageNumber + 2);
     } else {
-      showPage((prev) => prev + 1);
+      showPage((prev: number) => prev + 1);
     }
     setPrevDisabled(false);
   }
 
   function handlePrevious() {
     const { getPageNumber, showPage } = refs.pageList.context;
-    showPage((prev) => prev - 1);
+    showPage((prev: number) => prev - 1);
     setPrevDisabled(getPageNumber() === 0);
   }
 
@@ -72,27 +72,34 @@ export default function App() {
   );
 }
 
+interface PageListContextValue {
+  getPageNumber: () => number;
+  getPageCount: () => number;
+  addPage: (props: { data: string[] }) => void;
+  showPage: (indexOrFunc: number | ((prev: number) => number)) => void;
+}
+
 function PageList() {
   const refs = useRefProxy();
   const [getPages, addPage] = combineHooks(useList(refs.head, Page), [
     ,
     () => showPage(getPageCount() - 1),
-  ]);
+  ] as any);
 
-  function getPageNumber() {
-    return getPages().findIndex(({ context: { isHidden } }) => !isHidden());
+  function getPageNumber(): number {
+    return (getPages() as any).findIndex(({ context: { isHidden } }: any) => !isHidden());
   }
 
-  function getPageCount() {
-    return getPages().length;
+  function getPageCount(): number {
+    return (getPages() as any).length;
   }
 
-  function showPage(indexOrFunc) {
+  function showPage(indexOrFunc: number | ((prev: number) => number)): void {
     const index =
       indexOrFunc instanceof Function
         ? indexOrFunc(getPageNumber())
         : indexOrFunc;
-    getPages().forEach(({ context: { setIsHidden } }, i) =>
+    (getPages() as any).forEach(({ context: { setIsHidden } }: any, i: number) =>
       setIsHidden(i !== index),
     );
   }
@@ -104,9 +111,18 @@ function PageList() {
     />
   );
 }
-PageList.Context = createContext();
+PageList.Context = createContext<PageListContextValue>();
 
-function Page({ data }) {
+interface PageContextValue {
+  isHidden: () => boolean;
+  setIsHidden: (value: boolean | ((prev: boolean) => boolean)) => void;
+}
+
+interface PageProps {
+  data: string[];
+}
+
+function Page({ data }: PageProps) {
   const refs = useRefProxy();
   const [isHidden, setIsHidden] = useStyleBoolean(
     refs.head,
@@ -119,10 +135,10 @@ function Page({ data }) {
     <Page.Context.Provider value={{ isHidden, setIsHidden }} ref={refs.head}>
       <ul>
         {data.map((message) => (
-          <li>{message}</li>
+          <li key={message}>{message}</li>
         ))}
       </ul>
     </Page.Context.Provider>
   );
 }
-Page.Context = createContext();
+Page.Context = createContext<PageContextValue>();

@@ -10,7 +10,7 @@ import {
   useRefProxy,
   useTextContent,
   useTextInput,
-} from './lib/domstatejsx';
+} from '../domstatejsx';
 import Radio from './utils/Radio';
 
 export default function App() {
@@ -95,7 +95,7 @@ export default function App() {
   );
 }
 
-function JsonEdit({ onChange = () => { }, defaultValue = null }) {
+function JsonEdit({ onChange = () => { }, defaultValue = null }: any) {
   const refs = useRefProxy();
 
   const [getType, setType] = useTextInput(refs.typeSelect);

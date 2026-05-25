@@ -2,7 +2,7 @@ import {
   createContext,
   usePropertyBoolean,
   useRefProxy,
-} from './lib/domstatejsx';
+} from '../domstatejsx';
 
 export default function App() {
   const refs = useRefProxy();

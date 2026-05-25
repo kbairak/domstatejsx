@@ -2,7 +2,7 @@ import {
   useTextContent,
   useControlledInput,
   useRefProxy,
-} from './lib/domstatejsx';
+} from '../domstatejsx';
 import Radio from './utils/Radio';
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
     <>
       <Radio
         defaultValue={3}
-        onChange={setSpan}
+        onChange={setSpan as any}
         options={[
           [0, 'Zero'],
           [1, 'One'],
@@ -33,7 +33,7 @@ export default function App() {
       <p>
         <button
           onClick={() => {
-            setRadio(2);
+            setRadio(2 as any);
             refreshSpan();
           }}
         >

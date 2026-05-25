@@ -1,5 +1,4 @@
-import { useRefProxy, useIntContent } from './lib/domstatejsx';
-import logo from '../public/dominojs.webp';
+import { useRefProxy, useIntContent } from '../domstatejsx';
 
 function trim(str) {
   // split lines
@@ -86,7 +85,7 @@ export default function App() {
             </ul>
           </div>
           <div class="flex-1">
-            <img src={logo} />
+            <img src="/dominojs.webp" />
           </div>
         </div>
 

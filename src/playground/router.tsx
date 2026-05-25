@@ -1,4 +1,4 @@
-import { Route, Link } from './lib/domstatejsx';
+import { Route, Link } from '../domstatejsx';
 
 export default function App() {
   return (

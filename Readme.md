@@ -110,7 +110,7 @@ function Counter() {
 
   function handleClick() {
     const prevValue = parseInt(countSpan.textContent);
-    countSpan.textContent = `$(prevValue + 1)`;
+    countSpan.textContent = `${prevValue + 1}`;
   }
 
   return (
@@ -118,7 +118,7 @@ function Counter() {
       <div>
         <button onClick={handleClick}>Click me</button>
       </div>
-      <div>Count: {span}</div>
+      <div>Count: {countSpan}</div>
     </>
   );
 }
@@ -136,7 +136,7 @@ function Counter() {
 
   function handleClick() {
     const prevValue = parseInt(countSpanRef.current.textContent);
-    countSpanRef.current.textContent = `$(prevValue + 1)`;
+    countSpanRef.current.textContent = `${prevValue + 1}`;
   }
 
   return (
@@ -990,7 +990,24 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and
    npm install --save-dev @testing-library/dom jsdom vitest
    ```
 
-2. Add the following to `vite.config.js`:
+2. Create a `vitest.config.ts` file:
+
+   ```typescript
+   import { defineConfig } from 'vitest/config';
+
+   export default defineConfig({
+     test: {
+       globals: true,
+       environment: 'jsdom',
+     },
+     esbuild: {
+       jsx: 'automatic',
+       jsxImportSource: 'domstatejsx',
+     },
+   });
+   ```
+
+   Or add the test configuration to your existing `vite.config.js`:
 
    ```javascript
    export default {
@@ -1002,7 +1019,7 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and
    };
    ```
 
-3. Create your test files ending in `.test.jsx`.
+3. Create your test files ending in `.test.jsx` or `.test.tsx`.
 
 4. Run the tests with
 
@@ -1016,7 +1033,7 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and
    {
      ...
      "scripts": {
-       "test": "vitest"
+       "test": "vitest run"
      }
    }
    ```
@@ -1024,7 +1041,7 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and
    and run with
 
    ```sh
-   npm run test
+   npm test
    ```
 
 Lets pretend we want to test this simple component:
@@ -1131,6 +1148,27 @@ test('Clicking twice increments counter twice', () => {
   }
   ```
 
+- `useRefProxy` creates refs lazily using Proxy objects. Instead of declaring
+  individual refs, you get an object that creates refs on-demand when you
+  access properties:
+
+  ```javascript
+  function App() {
+    const refs = useRefProxy();
+    
+    return (
+      <>
+        <input ref={refs.username} />
+        <input ref={refs.password} />
+        <button ref={refs.submitBtn}>Submit</button>
+      </>
+    );
+  }
+  ```
+
+  This is equivalent to `const refs = { username: {}, password: {}, submitBtn: {} }`
+  but more concise when you have many refs.
+
 - `useIntContent` receives a ref as an argument and returns 2 functions: a
   getter and a setter. The getter returns the content of the element in integer
   format and the setter receives a number and sets it as the content of the
@@ -1194,6 +1232,30 @@ Here is the full list of hooks:
         </div>
         <div>
           <button onClick={handleClick}>ClickMe</button>
+        </div>
+      </>
+    );
+  }
+  ```
+
+- `useNumberInput`: Inspect/modify the value of a number input as an integer
+
+  ```javascript
+  function App() {
+    const [numberInput] = useRefs();
+    const [getNumber, setNumber] = useNumberInput(numberInput);
+
+    function handleIncrement() {
+      setNumber((prev) => prev + 1);
+    }
+
+    return (
+      <>
+        <div>
+          <input type="number" value="0" ref={numberInput} />
+        </div>
+        <div>
+          <button onClick={handleIncrement}>Increment</button>
         </div>
       </>
     );
@@ -1339,6 +1401,33 @@ Here is the full list of hooks:
 
   _(This will make more sense once we talk about contexts later on)_
 
+- `useLocalStorage`: This accepts a localStorage key and returns a getter/setter
+  pair for reading/writing to localStorage. The getter returns the stored string
+  value (or `null` if not set), and the setter saves the value to localStorage:
+
+  ```javascript
+  function App() {
+    const refs = useRefProxy();
+    const [getInput, setInput] = combineHooks(
+      useLocalStorage('app-input'),
+      useTextInput(refs.input),
+    );
+
+    return (
+      <input
+        ref={refs.input}
+        onChange={(e) => setInput(e.target.value)}
+        value={getInput() || ''}
+      />
+    );
+  }
+  ```
+
+  In this example, the input's value is automatically synced with localStorage.
+  When you type in the input, both the input value and localStorage are updated
+  (thanks to `combineHooks`). When the page reloads, `getInput()` reads from
+  localStorage to restore the previous value.
+
 - `combineHooks`: This accepts other hooks (or any getter/setter pair) and
   returns a single getter/setter pair. The combined getter simply returns the
   return value of the first hook and the combined setter invokes all the
@@ -1383,11 +1472,11 @@ Here is the full list of hooks:
     then, using that element as a starting point, searches downwards to find
     all contexts that match the context argument
 
-# The sandbox
+# Development playground
 
-This is a sandbox for `domstatejsx`.
+This repository includes a playground with example applications.
 
-In order to get it up and running, you have to do:
+To run the playground:
 
 ```sh
 git clone https://github.com/kbairak/domstatejsx
@@ -1396,13 +1485,15 @@ npm install
 npm run dev
 ```
 
-There are a number of applications under `./src/`. In order to choose which one
-you want to run, change the first line in `./src/main.jsx`. for example:
+The playground contains several demo applications under `./src/playground/`. To switch
+between them, change the first line in `./src/playground/main.tsx`:
 
 ```diff
 -import App from './todos';
 +import App from './accordion';
 ```
+
+Available demos: `accordion`, `todos`, `form`, `pagination`, `pager`, `home`, etc.
 
 [Here](https://www.kbairak.net/programming/react/2024/02/04/domstatejsx.html)
 is a blog post where I explain how this works.
@@ -1414,7 +1505,7 @@ is a blog post where I explain how this works.
 - [ ] Documentation
 - [x] Build options to extract the library to `dist`
 - [x] Upload to NPM
-- [ ] Add types
+- [x] Add types
 - [x] Create vite plugin for easy use
 - [ ] Look into possible memory leaks
 - [x] Instructions on how to write tests

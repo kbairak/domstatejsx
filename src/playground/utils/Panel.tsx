@@ -3,14 +3,26 @@ import {
   createContext,
   useClassBoolean,
   useRefProxy,
-} from '../lib/domstatejsx';
+} from '../../domstatejsx';
+
+interface PanelProps {
+  renderTrigger?: (open: () => void) => any;
+  children?: any;
+  render?: (close: () => void) => any;
+  defaultIsOpen?: boolean;
+}
+
+interface PanelContextValue {
+  get: () => boolean;
+  set: (value: boolean | ((prev: boolean) => boolean)) => void;
+}
 
 export default function Panel({
   renderTrigger,
   children,
   render = () => {},
   defaultIsOpen = false,
-}) {
+}: PanelProps) {
   const refs = useRefProxy();
   const [isOpen, setIsOpen] = combineHooks(
     useClassBoolean(refs.dark, 'bg-black/50', ['bg-black/0', 'invisible']),
@@ -40,4 +52,4 @@ export default function Panel({
     </Panel.Context.Provider>
   );
 }
-Panel.Context = createContext();
+Panel.Context = createContext<PanelContextValue>();

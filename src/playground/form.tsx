@@ -1,4 +1,4 @@
-import { useForm, useRefProxy, useTextContent } from './lib/domstatejsx';
+import { useForm, useRefProxy, useTextContent } from '../domstatejsx';
 import Radio from './utils/Radio';
 
 export default function App() {
@@ -6,9 +6,9 @@ export default function App() {
   const [, setPre] = useTextContent(refs.pre);
 
   const { registerForm, register, registerError } = useForm({
-    onSuccess: (data) => setPre('Success: ' + JSON.stringify(data, null, 2)),
-    onError: (errors) => setPre('Errors: ' + JSON.stringify(errors, null, 2)),
-    validate: ({ username, gender }) => {
+    onSuccess: async (data) => { setPre('Success: ' + JSON.stringify(data, null, 2)); },
+    onError: async (errors) => { setPre('Errors: ' + JSON.stringify(errors, null, 2)); },
+    validate: async ({ username, gender }) => {
       if (username === 'Bill' && gender === 'female') {
         throw new Error("Bill is a boy's name");
       }
@@ -17,14 +17,14 @@ export default function App() {
 
   return (
     <>
-      <form {...registerForm()}>
+      <form {...(registerForm() as any)}>
         <p>
           Username:{' '}
-          <input autoFocus {...register('username', { required: true })} />
+          <input autoFocus {...(register('username', { required: true }) as any)} />
         </p>
         <p
           style={{ display: 'none', color: 'red' }}
-          {...registerError('username')}
+          {...(registerError('username') as any)}
         />
         <p>
           Gender:{' '}
@@ -33,14 +33,14 @@ export default function App() {
               ['male', 'Male'],
               ['female', 'Female'],
             ]}
-            {...register('gender', { required: true })}
+            {...(register('gender', { required: true }) as any)}
           />
         </p>
         <p
           style={{ display: 'none', color: 'red' }}
-          {...registerError('gender')}
+          {...(registerError('gender') as any)}
         />
-        <p style={{ display: 'none', color: 'red' }} {...registerError()} />
+        <p style={{ display: 'none', color: 'red' }} {...(registerError() as any)} />
         <p>
           <button>Submit</button>
         </p>
