@@ -87,7 +87,9 @@ function PageList() {
   ] as any);
 
   function getPageNumber(): number {
-    return (getPages() as any).findIndex(({ context: { isHidden } }: any) => !isHidden());
+    return (getPages() as any).findIndex(
+      ({ context: { isHidden } }: any) => !isHidden(),
+    );
   }
 
   function getPageCount(): number {
@@ -99,8 +101,9 @@ function PageList() {
       indexOrFunc instanceof Function
         ? indexOrFunc(getPageNumber())
         : indexOrFunc;
-    (getPages() as any).forEach(({ context: { setIsHidden } }: any, i: number) =>
-      setIsHidden(i !== index),
+    (getPages() as any).forEach(
+      ({ context: { setIsHidden } }: any, i: number) =>
+        setIsHidden(i !== index),
     );
   }
 

@@ -15,7 +15,11 @@ interface RadioContextValue<T = any> {
   set: (value: T) => void;
 }
 
-export default function Radio<T = any>({ options, defaultValue = undefined, onChange }: RadioProps<T>) {
+export default function Radio<T = any>({
+  options,
+  defaultValue = undefined,
+  onChange,
+}: RadioProps<T>) {
   const refs: RefObject<HTMLInputElement>[] = [];
 
   function get(): T | undefined {
@@ -26,7 +30,9 @@ export default function Radio<T = any>({ options, defaultValue = undefined, onCh
 
   function set(value: T): void {
     const found = refs.find(
-      (ref) => ref.current && JSON.parse(ref.current.dataset.value || 'null') === value,
+      (ref) =>
+        ref.current &&
+        JSON.parse(ref.current.dataset.value || 'null') === value,
     );
     if (found && found.current) found.current.checked = true;
   }

@@ -59,7 +59,7 @@ describe('hooks', () => {
   describe('useTextInput', () => {
     it('works', () => {
       const ref = {};
-      const input = <input ref={ref} value="initial" /> as HTMLInputElement;
+      const input = (<input ref={ref} value="initial" />) as HTMLInputElement;
       const [get, set] = useTextInput(ref);
       expect(get()).toBe('initial');
       set('updated');
@@ -69,7 +69,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <input ref={ref} value="hello" /> as HTMLInputElement;
+      (<input ref={ref} value="hello" />) as HTMLInputElement;
       const [get, set] = useTextInput(ref);
       set((prev) => prev + '!');
       expect(get()).toBe('hello!');
@@ -79,7 +79,9 @@ describe('hooks', () => {
   describe('useNumberInput', () => {
     it('works', () => {
       const ref = {};
-      const input = <input ref={ref} type="number" value="5" /> as HTMLInputElement;
+      const input = (
+        <input ref={ref} type="number" value="5" />
+      ) as HTMLInputElement;
       const [get, set] = useNumberInput(ref);
       expect(get()).toBe(5);
       set(10);
@@ -89,7 +91,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <input ref={ref} type="number" value="3" /> as HTMLInputElement;
+      (<input ref={ref} type="number" value="3" />) as HTMLInputElement;
       const [get, set] = useNumberInput(ref);
       set((prev) => prev + 7);
       expect(get()).toBe(10);
@@ -99,7 +101,9 @@ describe('hooks', () => {
   describe('useCheckbox', () => {
     it('works', () => {
       const ref = {};
-      const input = <input ref={ref} type="checkbox" checked={false} /> as HTMLInputElement;
+      const input = (
+        <input ref={ref} type="checkbox" checked={false} />
+      ) as HTMLInputElement;
       const [get, set] = useCheckbox(ref);
       expect(get()).toBe(false);
       set(true);
@@ -109,7 +113,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <input ref={ref} type="checkbox" checked={false} /> as HTMLInputElement;
+      (<input ref={ref} type="checkbox" checked={false} />) as HTMLInputElement;
       const [get, set] = useCheckbox(ref);
       set((prev) => !prev);
       expect(get()).toBe(true);
@@ -119,7 +123,7 @@ describe('hooks', () => {
   describe('useStyleBoolean', () => {
     it('works with onValue and offValue', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       const [get, set] = useStyleBoolean(ref, 'display', 'none', 'block');
       expect(get()).toBe(false);
       set(true);
@@ -132,7 +136,9 @@ describe('hooks', () => {
 
     it('removes property when value is null', () => {
       const ref = {};
-      const div = <div ref={ref} style={{ display: 'none' }} /> as HTMLElement;
+      const div = (
+        <div ref={ref} style={{ display: 'none' }} />
+      ) as HTMLElement;
       const [get, set] = useStyleBoolean(ref, 'display', 'none', null);
       expect(get()).toBe(true);
       set(false);
@@ -141,7 +147,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <div ref={ref} /> as HTMLElement;
+      (<div ref={ref} />) as HTMLElement;
       const [get, set] = useStyleBoolean(ref, 'display', 'none', 'block');
       set((prev) => !prev);
       expect(get()).toBe(true);
@@ -151,7 +157,7 @@ describe('hooks', () => {
   describe('usePropertyBoolean', () => {
     it('works with onValue and offValue', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       const [get, set] = usePropertyBoolean(ref, 'hidden', true, false);
       set(true);
       expect((div as any).hidden).toBe(true);
@@ -163,7 +169,7 @@ describe('hooks', () => {
 
     it('deletes property when value is null', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       (div as any).customProp = 'value';
       const [get, set] = usePropertyBoolean(ref, 'customProp', 'value', null);
       expect(get()).toBe('value');
@@ -173,7 +179,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       const [, set] = usePropertyBoolean(ref, 'hidden', true, false);
       set(true);
       set((prev: any) => !prev);
@@ -184,7 +190,9 @@ describe('hooks', () => {
   describe('useErrorMessage', () => {
     it('works', () => {
       const ref = {};
-      const div = <div ref={ref} style={{ display: 'none' }} /> as HTMLElement;
+      const div = (
+        <div ref={ref} style={{ display: 'none' }} />
+      ) as HTMLElement;
       const [get, set] = useErrorMessage(ref);
       expect(get()).toBe(null);
       set('Error message');
@@ -199,9 +207,9 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <div ref={ref}>Error</div> as HTMLElement;
+      (<div ref={ref}>Error</div>) as HTMLElement;
       const [get, set] = useErrorMessage(ref);
-      set((prev) => prev ? prev + '!' : 'New error');
+      set((prev) => (prev ? prev + '!' : 'New error'));
       expect(get()).toBe('Error!');
     });
   });
@@ -209,7 +217,7 @@ describe('hooks', () => {
   describe('useClassBoolean', () => {
     it('works with single class names', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       const [get, set] = useClassBoolean(ref, 'active', 'inactive');
       expect(get()).toBe(false);
       set(true);
@@ -223,7 +231,7 @@ describe('hooks', () => {
 
     it('works with multiple class names', () => {
       const ref = {};
-      const div = <div ref={ref} /> as HTMLElement;
+      const div = (<div ref={ref} />) as HTMLElement;
       const [, set] = useClassBoolean(ref, ['foo', 'bar'], ['baz', 'qux']);
       set(true);
       expect(div.classList.contains('foo')).toBe(true);
@@ -239,7 +247,7 @@ describe('hooks', () => {
 
     it('works with null values', () => {
       const ref = {};
-      const div = <div ref={ref} className="active" /> as HTMLElement;
+      const div = (<div ref={ref} className="active" />) as HTMLElement;
       const [get, set] = useClassBoolean(ref, 'active', null);
       expect(get()).toBe(true);
       set(false);
@@ -248,7 +256,7 @@ describe('hooks', () => {
 
     it('accepts a function updater', () => {
       const ref = {};
-      <div ref={ref} /> as HTMLElement;
+      (<div ref={ref} />) as HTMLElement;
       const [get, set] = useClassBoolean(ref, 'active', 'inactive');
       set((prev) => !prev);
       expect(get()).toBe(true);
@@ -260,7 +268,10 @@ describe('hooks', () => {
       const [p1Ref, p2Ref] = useRefs();
       const p1 = <p ref={p1Ref}>one</p>;
       const p2 = <p ref={p2Ref}>one</p>;
-      const [get, set] = combineHooks(useTextContent(p1Ref), useTextContent(p2Ref));
+      const [get, set] = combineHooks(
+        useTextContent(p1Ref),
+        useTextContent(p2Ref),
+      );
       expect(p1.textContent).toBe('one');
       expect(p2.textContent).toBe('one');
       expect(get()).toBe('one');
@@ -269,5 +280,5 @@ describe('hooks', () => {
       expect(p2.textContent).toBe('two');
       expect(get()).toBe('two');
     });
-  })
+  });
 });

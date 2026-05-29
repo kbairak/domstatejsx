@@ -95,7 +95,7 @@ export default function App() {
   );
 }
 
-function JsonEdit({ onChange = () => { }, defaultValue = null }: any) {
+function JsonEdit({ onChange = () => {}, defaultValue = null }: any) {
   const refs = useRefProxy();
 
   const [getType, setType] = useTextInput(refs.typeSelect);
@@ -144,7 +144,7 @@ function JsonEdit({ onChange = () => { }, defaultValue = null }: any) {
 
   function toggleVisible(type) {
     [
-      ['null', () => { }],
+      ['null', () => {}],
       ['boolean', setBooleanVisible],
       ['number', setNumberVisible],
       ['string', setStringVisible],

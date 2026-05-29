@@ -5,92 +5,98 @@ import { createElement } from '../src/domstatejsx/jsx';
 describe('JSX Element Creation', () => {
   describe('Basic elements', () => {
     it('creates a simple div element', () => {
-      const element = <div /> as HTMLElement;
+      const element = (<div />) as HTMLElement;
       expect(element.nodeName).toBe('DIV');
       expect(element.nodeType).toBe(Node.ELEMENT_NODE);
     });
 
     it('creates a span element', () => {
-      const element = <span /> as HTMLElement;
+      const element = (<span />) as HTMLElement;
       expect(element.nodeName).toBe('SPAN');
     });
 
     it('creates a button element', () => {
-      const element = <button /> as HTMLElement;
+      const element = (<button />) as HTMLElement;
       expect(element.nodeName).toBe('BUTTON');
     });
 
     it('creates an input element', () => {
-      const element = <input /> as HTMLElement;
+      const element = (<input />) as HTMLElement;
       expect(element.nodeName).toBe('INPUT');
     });
   });
 
   describe('Text content', () => {
     it('creates element with text content as child', () => {
-      const element = <p>hello</p> as HTMLElement;
+      const element = (<p>hello</p>) as HTMLElement;
       expect(element.textContent).toBe('hello');
     });
 
     it('creates element with number as child', () => {
-      const element = <p>{42}</p> as HTMLElement;
+      const element = (<p>{42}</p>) as HTMLElement;
       expect(element.textContent).toBe('42');
     });
 
     it('creates element with zero as child', () => {
-      const element = <p>{0}</p> as HTMLElement;
+      const element = (<p>{0}</p>) as HTMLElement;
       expect(element.textContent).toBe('0');
     });
 
     it('creates element with multiple text children', () => {
-      const element = <p>{'hello'}{' '}{'world'}</p> as HTMLElement;
+      const element = (
+        <p>
+          {'hello'} {'world'}
+        </p>
+      ) as HTMLElement;
       expect(element.textContent).toBe('hello world');
     });
   });
 
   describe('Attributes', () => {
     it('sets id attribute', () => {
-      const element = <div id="test" /> as HTMLElement;
+      const element = (<div id="test" />) as HTMLElement;
       expect(element.id).toBe('test');
     });
 
     it('sets class attribute', () => {
-      const element = <div class="foo" /> as HTMLElement;
+      const element = (<div class="foo" />) as HTMLElement;
       expect(element.className).toBe('foo');
     });
 
     it('sets className attribute', () => {
-      const element = <div className="bar" /> as HTMLElement;
+      const element = (<div className="bar" />) as HTMLElement;
       expect(element.className).toBe('bar');
     });
 
     it('sets data attributes', () => {
-      const element = <div data-testid="foo" /> as HTMLElement;
+      const element = (<div data-testid="foo" />) as HTMLElement;
       expect(element.getAttribute('data-testid')).toBe('foo');
     });
 
     it('sets type attribute on input', () => {
-      const element = <input type="text" /> as HTMLInputElement;
+      const element = (<input type="text" />) as HTMLInputElement;
       expect(element.type).toBe('text');
     });
 
     it('sets value attribute on input', () => {
-      const element = <input value="hello" /> as HTMLInputElement;
+      const element = (<input value="hello" />) as HTMLInputElement;
       expect(element.value).toBe('hello');
     });
 
     it('sets placeholder attribute', () => {
-      const element = <input placeholder="Enter text" /> as HTMLInputElement;
+      const element = (<input placeholder="Enter text" />) as HTMLInputElement;
       expect(element.placeholder).toBe('Enter text');
     });
 
     it('sets href attribute on link', () => {
-      const element = <a href="https://example.com" /> as HTMLAnchorElement;
+      const element = (<a href="https://example.com" />) as HTMLAnchorElement;
       expect(element.href).toBe('https://example.com/');
     });
 
     it('sets multiple attributes', () => {
-      const element = <div id="test" className="foo bar" data-value="123" /> as HTMLElement;
+      const element = (
+        <div id="test" className="foo bar" data-value="123" />
+      ) as HTMLElement;
       expect(element.id).toBe('test');
       expect(element.className).toBe('foo bar');
       expect(element.getAttribute('data-value')).toBe('123');
@@ -99,22 +105,26 @@ describe('JSX Element Creation', () => {
 
   describe('Boolean attributes', () => {
     it('sets disabled attribute to true', () => {
-      const element = <button disabled={true} /> as HTMLButtonElement;
+      const element = (<button disabled={true} />) as HTMLButtonElement;
       expect(element.disabled).toBe(true);
     });
 
     it('sets disabled attribute to false', () => {
-      const element = <button disabled={false} /> as HTMLButtonElement;
+      const element = (<button disabled={false} />) as HTMLButtonElement;
       expect(element.disabled).toBe(false);
     });
 
     it('sets checked attribute to true', () => {
-      const element = <input type="checkbox" checked={true} /> as HTMLInputElement;
+      const element = (
+        <input type="checkbox" checked={true} />
+      ) as HTMLInputElement;
       expect(element.checked).toBe(true);
     });
 
     it('sets checked attribute to false', () => {
-      const element = <input type="checkbox" checked={false} /> as HTMLInputElement;
+      const element = (
+        <input type="checkbox" checked={false} />
+      ) as HTMLInputElement;
       expect(element.checked).toBe(false);
     });
   });
@@ -122,35 +132,35 @@ describe('JSX Element Creation', () => {
   describe('Event handlers', () => {
     it('attaches onClick handler', () => {
       const handler = vi.fn();
-      const element = <button onClick={handler} /> as HTMLButtonElement;
+      const element = (<button onClick={handler} />) as HTMLButtonElement;
       element.click();
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('attaches onChange handler', () => {
       const handler = vi.fn();
-      const element = <input onChange={handler} /> as HTMLInputElement;
+      const element = (<input onChange={handler} />) as HTMLInputElement;
       element.dispatchEvent(new Event('change'));
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('attaches onSubmit handler', () => {
       const handler = vi.fn((e: Event) => e.preventDefault());
-      const element = <form onSubmit={handler} /> as HTMLFormElement;
+      const element = (<form onSubmit={handler} />) as HTMLFormElement;
       element.dispatchEvent(new Event('submit'));
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('attaches onMouseOver handler', () => {
       const handler = vi.fn();
-      const element = <div onMouseOver={handler} /> as HTMLElement;
+      const element = (<div onMouseOver={handler} />) as HTMLElement;
       element.dispatchEvent(new Event('mouseover'));
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('attaches onKeyDown handler', () => {
       const handler = vi.fn();
-      const element = <input onKeyDown={handler} /> as HTMLInputElement;
+      const element = (<input onKeyDown={handler} />) as HTMLInputElement;
       element.dispatchEvent(new Event('keydown'));
       expect(handler).toHaveBeenCalledTimes(1);
     });
@@ -158,12 +168,14 @@ describe('JSX Element Creation', () => {
 
   describe('Style handling', () => {
     it('sets style from string', () => {
-      const element = <div style="color: red" /> as HTMLElement;
+      const element = (<div style="color: red" />) as HTMLElement;
       expect(element.style.color).toBe('red');
     });
 
     it('sets style from object', () => {
-      const element = <div style={{ color: 'red', backgroundColor: 'blue' }} /> as HTMLElement;
+      const element = (
+        <div style={{ color: 'red', backgroundColor: 'blue' }} />
+      ) as HTMLElement;
       expect(element.style.color).toBe('red');
       expect(element.style.backgroundColor).toBe('blue');
     });
@@ -187,7 +199,7 @@ describe('JSX Element Creation', () => {
   describe('Children handling', () => {
     it('creates element with single child element', () => {
       const child = <span>child</span>;
-      const parent = <div>{child}</div> as HTMLElement;
+      const parent = (<div>{child}</div>) as HTMLElement;
       expect(parent.children.length).toBe(1);
       expect(parent.children[0].nodeName).toBe('SPAN');
       expect(parent.textContent).toBe('child');
@@ -208,7 +220,7 @@ describe('JSX Element Creation', () => {
         <span key="2">two</span>,
         <span key="3">three</span>,
       ];
-      const element = <div>{children}</div> as HTMLElement;
+      const element = (<div>{children}</div>) as HTMLElement;
       expect(element.children.length).toBe(3);
       expect(element.textContent).toBe('onetwothree');
     });
@@ -226,38 +238,62 @@ describe('JSX Element Creation', () => {
     });
 
     it('handles null children', () => {
-      const element = <div>{'text'}{null}{'more'}</div> as HTMLElement;
+      const element = (
+        <div>
+          {'text'}
+          {null}
+          {'more'}
+        </div>
+      ) as HTMLElement;
       expect(element.textContent).toBe('textmore');
     });
 
     it('handles undefined children', () => {
-      const element = <div>{'text'}{undefined}{'more'}</div> as HTMLElement;
+      const element = (
+        <div>
+          {'text'}
+          {undefined}
+          {'more'}
+        </div>
+      ) as HTMLElement;
       expect(element.textContent).toBe('textmore');
     });
 
     it('handles false children', () => {
-      const element = <div>{'text'}{false}{'more'}</div> as HTMLElement;
+      const element = (
+        <div>
+          {'text'}
+          {false}
+          {'more'}
+        </div>
+      ) as HTMLElement;
       expect(element.textContent).toBe('textmore');
     });
 
     it('handles true children', () => {
-      const element = <div>{'text'}{true}{'more'}</div> as HTMLElement;
+      const element = (
+        <div>
+          {'text'}
+          {true}
+          {'more'}
+        </div>
+      ) as HTMLElement;
       expect(element.textContent).toBe('textmore');
     });
 
     it('handles conditional children with &&', () => {
-      const element1 = <div>{true && <span>shown</span>}</div> as HTMLElement;
+      const element1 = (<div>{true && <span>shown</span>}</div>) as HTMLElement;
       expect(element1.querySelector('span')).not.toBeNull();
 
-      const element2 = <div>{false && <span>hidden</span>}</div> as HTMLElement;
+      const element2 = (
+        <div>{false && <span>hidden</span>}</div>
+      ) as HTMLElement;
       expect(element2.querySelector('span')).toBeNull();
     });
 
     it('handles nested arrays of children', () => {
       const element = (
-        <div>
-          {[<span key="1">one</span>, <span key="2">two</span>]}
-        </div>
+        <div>{[<span key="1">one</span>, <span key="2">two</span>]}</div>
       ) as HTMLElement;
       expect(element.children.length).toBe(2);
     });
@@ -265,7 +301,7 @@ describe('JSX Element Creation', () => {
 
   describe('Fragments', () => {
     it('creates a fragment', () => {
-      const fragment = <></> as DocumentFragment;
+      const fragment = (<></>) as DocumentFragment;
       expect(fragment.nodeType).toBe(Node.DOCUMENT_FRAGMENT_NODE);
     });
 
@@ -286,7 +322,7 @@ describe('JSX Element Creation', () => {
           <span>two</span>
         </>
       ) as DocumentFragment;
-      const container = <div /> as HTMLElement;
+      const container = (<div />) as HTMLElement;
       container.appendChild(fragment);
       expect(container.children.length).toBe(2);
       expect(container.children[0].textContent).toBe('one');
@@ -305,7 +341,7 @@ describe('JSX Element Creation', () => {
           {inner}
         </>
       ) as DocumentFragment;
-      const container = <div /> as HTMLElement;
+      const container = (<div />) as HTMLElement;
       container.appendChild(outer);
       expect(container.children.length).toBe(2);
     });
@@ -316,7 +352,7 @@ describe('JSX Element Creation', () => {
       function Comp() {
         return <div>component</div>;
       }
-      const element = <Comp /> as HTMLElement;
+      const element = (<Comp />) as HTMLElement;
       expect(element.nodeName).toBe('DIV');
       expect(element.textContent).toBe('component');
     });
@@ -325,7 +361,7 @@ describe('JSX Element Creation', () => {
       function Comp({ text }: { text: string }) {
         return <div>{text}</div>;
       }
-      const element = <Comp text="hello" /> as HTMLElement;
+      const element = (<Comp text="hello" />) as HTMLElement;
       expect(element.textContent).toBe('hello');
     });
 
@@ -342,10 +378,24 @@ describe('JSX Element Creation', () => {
     });
 
     it('renders component with multiple props', () => {
-      function Comp({ id, className, text }: { id: string; className: string; text: string }) {
-        return <div id={id} className={className}>{text}</div>;
+      function Comp({
+        id,
+        className,
+        text,
+      }: {
+        id: string;
+        className: string;
+        text: string;
+      }) {
+        return (
+          <div id={id} className={className}>
+            {text}
+          </div>
+        );
       }
-      const element = <Comp id="test" className="foo" text="bar" /> as HTMLElement;
+      const element = (
+        <Comp id="test" className="foo" text="bar" />
+      ) as HTMLElement;
       expect(element.id).toBe('test');
       expect(element.className).toBe('foo');
       expect(element.textContent).toBe('bar');
@@ -356,9 +406,13 @@ describe('JSX Element Creation', () => {
         return <span>{text}</span>;
       }
       function Outer() {
-        return <div><Inner text="nested" /></div>;
+        return (
+          <div>
+            <Inner text="nested" />
+          </div>
+        );
       }
-      const element = <Outer /> as HTMLElement;
+      const element = (<Outer />) as HTMLElement;
       expect(element.querySelector('span')!.textContent).toBe('nested');
     });
   });
@@ -366,7 +420,7 @@ describe('JSX Element Creation', () => {
   describe('Spread props', () => {
     it('handles spread props', () => {
       const props = { id: 'test', className: 'foo', 'data-value': '123' };
-      const element = <div {...props} /> as HTMLElement;
+      const element = (<div {...props} />) as HTMLElement;
       expect(element.id).toBe('test');
       expect(element.className).toBe('foo');
       expect(element.getAttribute('data-value')).toBe('123');
@@ -374,7 +428,7 @@ describe('JSX Element Creation', () => {
 
     it('handles spread props with override', () => {
       const props = { id: 'test', className: 'foo' };
-      const element = <div {...props} className="bar" /> as HTMLElement;
+      const element = (<div {...props} className="bar" />) as HTMLElement;
       expect(element.id).toBe('test');
       expect(element.className).toBe('bar');
     });
@@ -382,12 +436,12 @@ describe('JSX Element Creation', () => {
 
   describe('Edge cases', () => {
     it('creates empty div', () => {
-      const element = <div /> as HTMLElement;
+      const element = (<div />) as HTMLElement;
       expect(element.childNodes.length).toBe(0);
     });
 
     it('handles self-closing tags', () => {
-      const input = <input /> as HTMLInputElement;
+      const input = (<input />) as HTMLInputElement;
       expect(input.nodeName).toBe('INPUT');
 
       const br = <br />;
@@ -419,7 +473,11 @@ describe('JSX Element Creation', () => {
   describe('createElement compatibility', () => {
     it('createElement with children as varargs', () => {
       // createElement (classic transform) accepts children as varargs
-      const element = createElement('div', { id: 'test' }, 'text') as HTMLElement;
+      const element = createElement(
+        'div',
+        { id: 'test' },
+        'text',
+      ) as HTMLElement;
       expect(element.nodeName).toBe('DIV');
       expect(element.id).toBe('test');
       expect(element.textContent).toBe('text');

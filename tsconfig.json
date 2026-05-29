@@ -37,13 +37,6 @@
     "noImplicitReturns": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/domstatejsx/**/*",
-    "test/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/playground"
-  ]
+  "include": ["src/domstatejsx/**/*", "test/**/*"],
+  "exclude": ["node_modules", "dist", "src/playground"]
 }

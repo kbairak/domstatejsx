@@ -6,8 +6,12 @@ export default function App() {
   const [, setPre] = useTextContent(refs.pre);
 
   const { registerForm, register, registerError } = useForm({
-    onSuccess: async (data) => { setPre('Success: ' + JSON.stringify(data, null, 2)); },
-    onError: async (errors) => { setPre('Errors: ' + JSON.stringify(errors, null, 2)); },
+    onSuccess: async (data) => {
+      setPre('Success: ' + JSON.stringify(data, null, 2));
+    },
+    onError: async (errors) => {
+      setPre('Errors: ' + JSON.stringify(errors, null, 2));
+    },
     validate: async ({ username, gender }) => {
       if (username === 'Bill' && gender === 'female') {
         throw new Error("Bill is a boy's name");
@@ -20,7 +24,10 @@ export default function App() {
       <form {...(registerForm() as any)}>
         <p>
           Username:{' '}
-          <input autoFocus {...(register('username', { required: true }) as any)} />
+          <input
+            autoFocus
+            {...(register('username', { required: true }) as any)}
+          />
         </p>
         <p
           style={{ display: 'none', color: 'red' }}
@@ -40,7 +47,10 @@ export default function App() {
           style={{ display: 'none', color: 'red' }}
           {...(registerError('gender') as any)}
         />
-        <p style={{ display: 'none', color: 'red' }} {...(registerError() as any)} />
+        <p
+          style={{ display: 'none', color: 'red' }}
+          {...(registerError() as any)}
+        />
         <p>
           <button>Submit</button>
         </p>

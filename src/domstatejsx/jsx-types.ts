@@ -16,7 +16,9 @@ export interface ComponentProps {
   children?: ComponentChildren;
 }
 
-export type FunctionComponent<P = {}> = (props: P & ComponentProps) => JSXElement;
+export type FunctionComponent<P = {}> = (
+  props: P & ComponentProps,
+) => JSXElement;
 
 export interface RefObject<T = any> {
   current?: T;

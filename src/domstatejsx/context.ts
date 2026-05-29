@@ -86,7 +86,9 @@ export function findUp(
 }
 
 function findDown(node: HTMLElement, context: Context): HTMLElement[] {
-  return [...node.querySelectorAll(`[data-${context.datasetKey}]`)] as HTMLElement[];
+  return [
+    ...node.querySelectorAll(`[data-${context.datasetKey}]`),
+  ] as HTMLElement[];
 }
 
 type UseContextOptions = {
@@ -109,10 +111,12 @@ export function useContext<T = any>(
     }
     return undefined;
   } else if (direction === 'down') {
-    return findDown(node, context).map((element) => {
-      const key = element.dataset[context.datasetKey];
-      return key ? (EXPOSE[key] as T) : undefined;
-    }).filter((v): v is T => v !== undefined);
+    return findDown(node, context)
+      .map((element) => {
+        const key = element.dataset[context.datasetKey];
+        return key ? (EXPOSE[key] as T) : undefined;
+      })
+      .filter((v): v is T => v !== undefined);
   } else if (direction === 'side' && upContext) {
     const upNode = findUp(node, upContext) || (document.body as HTMLElement);
     return useContext(upNode, context, { direction: 'down' });

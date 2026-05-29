@@ -14,6 +14,11 @@ export default defineConfig({
         resolve(__dirname, 'src/domstatejsx/vite-plugin.ts'),
       ],
     },
+    rollupOptions: {
+      output: {
+        sourcemapExcludeSources: false,
+      },
+    },
   },
   plugins: [
     dts({

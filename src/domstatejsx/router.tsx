@@ -1,13 +1,15 @@
 import { isEqual } from 'lodash';
 import { createContext, findUp, useContext } from './context.js';
 import { useRefProxy } from './hooks.js';
-import type { ComponentProps, FunctionComponent, JSXElement } from './jsx-types';
+import type {
+  ComponentProps,
+  FunctionComponent,
+  JSXElement,
+} from './jsx-types';
 
 function convertToPattern(path: string): string {
   // /a/:b/c/:d => ^/a/(?<b>[^/]+)/c/(?<d>[^/]+)
-  return (
-    '^' + path.replace(/:[^\/]+/g, (m) => `(?<${m.substring(1)}>[^/]+)`)
-  );
+  return '^' + path.replace(/:[^\/]+/g, (m) => `(?<${m.substring(1)}>[^/]+)`);
 }
 
 type RouteProps = ComponentProps & {
@@ -28,7 +30,12 @@ type RouteContextValue = {
   isDirectChildOf: (parent: HTMLElement) => boolean;
 };
 
-export function Route({ path = '', end = false, NotFound, render }: RouteProps): JSXElement {
+export function Route({
+  path = '',
+  end = false,
+  NotFound,
+  render,
+}: RouteProps): JSXElement {
   const refs = useRefProxy();
 
   setTimeout(() => {
@@ -63,7 +70,11 @@ export function Route({ path = '', end = false, NotFound, render }: RouteProps):
 
     // Lets see if any of my children should draw themselves
     let found = false;
-    (useContext(refs.head.current as HTMLElement, Route.Context, { direction: 'down' }) as RouteContextValue[]).forEach(
+    (
+      useContext(refs.head.current as HTMLElement, Route.Context, {
+        direction: 'down',
+      }) as RouteContextValue[]
+    ).forEach(
       ({
         path: childPath,
         end: childEnd,
@@ -96,7 +107,12 @@ export function Route({ path = '', end = false, NotFound, render }: RouteProps):
     if (NotFound) {
       (refs.head.current as HTMLElement).replaceChildren(<NotFound />);
     } else {
-      (useContext(refs.head.current as HTMLElement, Route.Context) as RouteContextValue).renderNotFound();
+      (
+        useContext(
+          refs.head.current as HTMLElement,
+          Route.Context,
+        ) as RouteContextValue
+      ).renderNotFound();
     }
   }
 
@@ -106,7 +122,12 @@ export function Route({ path = '', end = false, NotFound, render }: RouteProps):
     if (match) {
       draw(to.substring(match[0].length), match.groups || {});
     } else {
-      (useContext(refs.head.current as HTMLElement, Route.Context) as RouteContextValue).navigate(to, {
+      (
+        useContext(
+          refs.head.current as HTMLElement,
+          Route.Context,
+        ) as RouteContextValue
+      ).navigate(to, {
         initial: false,
       });
     }
@@ -116,14 +137,19 @@ export function Route({ path = '', end = false, NotFound, render }: RouteProps):
   }
 
   function getPath(): string {
-    const parent = useContext(refs.head.current as HTMLElement, Route.Context) as RouteContextValue | undefined;
+    const parent = useContext(
+      refs.head.current as HTMLElement,
+      Route.Context,
+    ) as RouteContextValue | undefined;
     return parent ? parent.getPath() + path : path;
   }
 
   function clear(): void {
-    (useContext(refs.head.current as HTMLElement, Link.Context, { direction: 'down' }) as LinkContextValue[]).forEach(
-      ({ removePopstateListener }) => removePopstateListener(),
-    );
+    (
+      useContext(refs.head.current as HTMLElement, Link.Context, {
+        direction: 'down',
+      }) as LinkContextValue[]
+    ).forEach(({ removePopstateListener }) => removePopstateListener());
     (refs.head.current as HTMLElement).innerHTML = '';
   }
 
@@ -171,17 +197,29 @@ export function Link({ to, render = null, children }: LinkProps): JSXElement {
 
   function _findTo(): string {
     return to.startsWith('.')
-      ? (useContext(refs.head.current as HTMLElement, Route.Context) as RouteContextValue).getPath() + to.substring(1)
+      ? (
+          useContext(
+            refs.head.current as HTMLElement,
+            Route.Context,
+          ) as RouteContextValue
+        ).getPath() + to.substring(1)
       : to;
   }
 
   function onClick(event: Event): void {
     const toPath = _findTo();
     if (toPath !== location.pathname) {
-      (useContext(event.target as HTMLElement, Route.Context) as RouteContextValue).navigate(toPath, { initial: true });
-      (useContext(document.body, Link.Context, { direction: 'down' }) as LinkContextValue[]).forEach(
-        ({ rerender }) => rerender(),
-      );
+      (
+        useContext(
+          event.target as HTMLElement,
+          Route.Context,
+        ) as RouteContextValue
+      ).navigate(toPath, { initial: true });
+      (
+        useContext(document.body, Link.Context, {
+          direction: 'down',
+        }) as LinkContextValue[]
+      ).forEach(({ rerender }) => rerender());
     }
   }
 

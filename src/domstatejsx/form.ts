@@ -132,7 +132,9 @@ export function useForm({
     return validated;
   }
 
-  function registerForm({ validate: formValidate = null }: { validate?: ((data: FormData) => Promise<void>) | null } = {}) {
+  function registerForm({
+    validate: formValidate = null,
+  }: { validate?: ((data: FormData) => Promise<void>) | null } = {}) {
     if (formValidate !== null) _formValidate = formValidate;
 
     setTimeout(() => {
@@ -172,7 +174,13 @@ export function useForm({
 
   function register(
     name: string,
-    { required = null, validate: fieldValidate = null }: { required?: boolean | null; validate?: ((value: any) => Promise<void>) | null } = {},
+    {
+      required = null,
+      validate: fieldValidate = null,
+    }: {
+      required?: boolean | null;
+      validate?: ((value: any) => Promise<void>) | null;
+    } = {},
   ) {
     fieldData[name] ??= {};
     if (required !== null) fieldData[name].required = required;

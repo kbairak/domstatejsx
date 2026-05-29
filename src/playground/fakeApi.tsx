@@ -32,7 +32,9 @@ export default function App() {
     null,
     'none',
   );
-  const [, , resetMessages] = useList(refs.ul, (message: string) => <li>{message}</li>);
+  const [, , resetMessages] = useList(refs.ul, (message: string) => (
+    <li>{message}</li>
+  ));
   const [, setFormIsLoading] = usePropertyBoolean(
     refs.submit,
     'disabled',
@@ -61,9 +63,15 @@ export default function App() {
   });
 
   const { registerForm, register, registerError, reset } = useForm({
-    onStart: async () => { setFormIsLoading(true); },
-    onSubmit: async (data) => { await mutate(data.message); },
-    onEnd: async () => { setFormIsLoading(false); },
+    onStart: async () => {
+      setFormIsLoading(true);
+    },
+    onSubmit: async (data) => {
+      await mutate(data.message);
+    },
+    onEnd: async () => {
+      setFormIsLoading(false);
+    },
   });
 
   return (
@@ -84,9 +92,13 @@ export default function App() {
       </p>
       <form {...(registerForm() as any)}>
         <p>
-          Message: <input {...(register('message', { required: true }) as any)} />
+          Message:{' '}
+          <input {...(register('message', { required: true }) as any)} />
         </p>
-        <p style={{ display: 'none', color: 'red' }} {...(registerError() as any)} />
+        <p
+          style={{ display: 'none', color: 'red' }}
+          {...(registerError() as any)}
+        />
         <p
           style={{ display: 'none', color: 'red' }}
           {...(registerError('message') as any)}

@@ -1,8 +1,4 @@
-import {
-  createContext,
-  usePropertyBoolean,
-  useRefProxy,
-} from '../domstatejsx';
+import { createContext, usePropertyBoolean, useRefProxy } from '../domstatejsx';
 
 export default function App() {
   const refs = useRefProxy();

@@ -9,15 +9,12 @@ export function* useRefs(): Generator<RefObject> {
 }
 
 export function useRefProxy(): Record<string, RefObject> {
-  return new Proxy(
-    {} as Record<string, RefObject>,
-    {
-      get(target, prop: string) {
-        if (!(prop in target)) target[prop] = {};
-        return target[prop];
-      },
+  return new Proxy({} as Record<string, RefObject>, {
+    get(target, prop: string) {
+      if (!(prop in target)) target[prop] = {};
+      return target[prop];
     },
-  );
+  });
 }
 
 export function combineHooks<T>(...hooks: Hook<T>[]): Hook<T> {
@@ -94,9 +91,7 @@ export function useStyleBoolean(
   return [get, acceptsFunc(set, get)];
 }
 
-export function useCheckbox(
-  ref: RefObject<HTMLInputElement>,
-): Hook<boolean> {
+export function useCheckbox(ref: RefObject<HTMLInputElement>): Hook<boolean> {
   function get(): boolean {
     return ref.current!.checked;
   }
@@ -122,9 +117,7 @@ export function useTextInput(
   return [get, acceptsFunc(set, get)];
 }
 
-export function useNumberInput(
-  ref: RefObject<HTMLInputElement>,
-): Hook<number> {
+export function useNumberInput(ref: RefObject<HTMLInputElement>): Hook<number> {
   function get(): number {
     return parseInt(ref.current!.value, 10);
   }
@@ -194,8 +187,10 @@ export function useClassBoolean(
   onValue: string | string[] | null,
   offValue: string | string[] | null,
 ): Hook<boolean> {
-  let onClasses: string[] = onValue === null ? [] : Array.isArray(onValue) ? onValue : [onValue];
-  let offClasses: string[] = offValue === null ? [] : Array.isArray(offValue) ? offValue : [offValue];
+  let onClasses: string[] =
+    onValue === null ? [] : Array.isArray(onValue) ? onValue : [onValue];
+  let offClasses: string[] =
+    offValue === null ? [] : Array.isArray(offValue) ? offValue : [offValue];
 
   function get(): boolean {
     return onClasses.every((className) =>
@@ -266,9 +261,12 @@ export function useControlledInput<T = any>(
   return [get, acceptsFunc(set, get)];
 }
 
-export function useLocalStorage(key: string): Hook<string | null> {
+export function useLocalStorage(
+  key: string,
+  defaultValue: string | null = null,
+): Hook<string | null> {
   function get(): string | null {
-    return localStorage.getItem(key);
+    return localStorage.getItem(key) || defaultValue;
   }
 
   function set(value: string | null): void {

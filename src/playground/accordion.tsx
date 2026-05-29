@@ -116,15 +116,19 @@ function Accordion({ children, multi = false, class: className, style }: any) {
 
   function expandAll() {
     if (!multi) return;
-    (useContext(refs.head.current, AccordionItemContext, {
-      direction: 'down',
-    }) as any).forEach(({ setContentHidden }: any) => setContentHidden(false));
+    (
+      useContext(refs.head.current, AccordionItemContext, {
+        direction: 'down',
+      }) as any
+    ).forEach(({ setContentHidden }: any) => setContentHidden(false));
   }
 
   function collapseAll() {
-    (useContext(refs.head.current, AccordionItemContext, {
-      direction: 'down',
-    }) as any).forEach(({ setContentHidden }: any) => setContentHidden(true));
+    (
+      useContext(refs.head.current, AccordionItemContext, {
+        direction: 'down',
+      }) as any
+    ).forEach(({ setContentHidden }: any) => setContentHidden(true));
   }
 
   return (
@@ -158,7 +162,10 @@ function AccordionItem({
 
   const id = defaultId || uuid4();
   function handleTrigger() {
-    const { triggerItem } = useContext(refs.head.current, AccordionContext) as any;
+    const { triggerItem } = useContext(
+      refs.head.current,
+      AccordionContext,
+    ) as any;
     triggerItem(id);
   }
 

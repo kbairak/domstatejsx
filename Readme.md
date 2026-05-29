@@ -56,7 +56,7 @@ options to enable JSX:
 
 Your first application can look like this:
 
-```javascript
+```jsx
 document.body.append(<h1>hello world</h1>);
 ```
 
@@ -71,7 +71,7 @@ document.body.append(element);
 JSX expressions can also render components, which are simply functions that
 return DOM elements:
 
-```javascript
+```jsx
 function Counter() {
   return (
     <>
@@ -92,9 +92,9 @@ document.body.append(<Counter />);
 >
 > In React, there is a difference between `<Counter />` and `Counter()`. As a
 > function, `Counter` may return JSX but React makes a note that the first
-> invocation mounts a component to the DOM and maintains its lifecycle (with hooks
-> etc). In domstatejsx, there is no difference; you could have written the above
-> like this and it would have made no difference:
+> invocation mounts a component to the DOM and maintains its lifecycle (with
+> hooks etc). In domstatejsx, there is no difference; you could have written the
+> above like this and it would have made no difference:
 >
 > ```javascript
 > document.body.append(Counter());
@@ -104,7 +104,7 @@ document.body.append(<Counter />);
 
 Where will we put our state variables? The answer is: the `span` element itself!
 
-```javascript
+```jsx
 function Counter() {
   const countSpan = <span>0</span>;
 
@@ -130,7 +130,7 @@ If we want to keep a part of the returned DOM to a variable, like we did here,
 we can use `ref`s. They work similarly to React; the DOM element is assigned to
 the `.current` attribute of the `ref`.
 
-```javascript
+```jsx
 function Counter() {
   const countSpanRef = {};
 
@@ -154,10 +154,11 @@ function Counter() {
 document.body.append(<Counter />);
 ```
 
-> When a `ref` prop is encountered in JSX, the produced DOM element will be added as the
-> `current` property of the "ref". The previous snippet is roughly equivalent to:
+> When a `ref` prop is encountered in JSX, the produced DOM element will be
+> added as the `current` property of the "ref". The previous snippet is roughly
+> equivalent to:
 >
-> ```javascript
+> ```jsx
 > function Counter() {
 >   function handleClick() {
 >     // ...
@@ -269,18 +270,20 @@ modifying DOM elements; feel free to look them up in the
 ## How components communicate with each other
 
 Because component functions return simple DOM elements, it's hard to think of
-them as "alive", as if we are able to interact with them after they are
-created. We have several options in order to achieve this, including ref contexts,
+them as "alive", as if we are able to interact with them after they are created.
+We have several options in order to achieve this, including ref contexts,
 context lookup and callbacks. We will talk about two scenarios:
 
-- A child component wants to invoke an action on a parent component, ie _upwards_
-- A parent component wants to invoke an action on a child component, ie _downwards_
+- A child component wants to invoke an action on a parent component, ie
+  _upwards_
+- A parent component wants to invoke an action on a child component, ie
+  _downwards_
 
 ### Upwards, with callbacks
 
 You can interact with parent components with callbacks. Let's consider this:
 
-```javascript
+```jsx
 export default function App() {
   return (
     <>
@@ -353,8 +356,8 @@ And pass it as a prop to the child component
 
 ### Upwards, with context lookup
 
-Alternatively you can find a parent component's context in order to interact with it.
-Lets start by having the parent component _expose_ its context.
+Alternatively you can find a parent component's context in order to interact
+with it. Lets start by having the parent component _expose_ its context.
 
 ```diff
  export default function App() {
@@ -407,14 +410,14 @@ Then, you can _find_ the context from the child component:
 
 The context gets attached to the DOM. This is why `useContext` must use a DOM
 element as the first argument to use as the starting point for its search. Then
-it goes "up" until it finds a node with an `App.Context` context associated
-with it and returns its value.
+it goes "up" until it finds a node with an `App.Context` context associated with
+it and returns its value.
 
 ### Downwards, accessing context through a _ref_
 
 Lets reverse our example:
 
-```javascript
+```jsx
 export default function App() {
   return (
     <>
@@ -429,7 +432,8 @@ function Counter() {
 }
 ```
 
-We will start by having the child component expose its functionality through context:
+We will start by having the child component expose its functionality through
+context:
 
 ```diff
  export default function App() {
@@ -459,8 +463,8 @@ We will start by having the child component expose its functionality through con
 +Counter.Context = createContext();
 ```
 
-Then, the parent component can attach a _ref_ to the child component and access its
-context:
+Then, the parent component can attach a _ref_ to the child component and access
+its context:
 
 ```diff
  export default function App() {
@@ -488,10 +492,10 @@ context:
 
 ### Downwards, with context lookup
 
-You can also search for context _downwards_. This is especially helpful if you want to
-affect many child components at the same time:
+You can also search for context _downwards_. This is especially helpful if you
+want to affect many child components at the same time:
 
-```javascript
+```jsx
 export default function App() {
   return (
     <>
@@ -540,8 +544,8 @@ Counter.Context = createContext();
  Counter.Context = createContext();
 ```
 
-`useContext` with the `{ direction: 'down' }` option searches the DOM under the starting
-node and returns a list of found contexts.
+`useContext` with the `{ direction: 'down' }` option searches the DOM under the
+starting node and returns a list of found contexts.
 
 ## Other utilities
 
@@ -551,8 +555,8 @@ implemented mainly as proofs-of-concept for the functionality they provide:
 
 ### Queries
 
-`useQuery` and `useMutation` can be used to manage interacting with remote
-APIs. Their design has been inspired by the
+`useQuery` and `useMutation` can be used to manage interacting with remote APIs.
+Their design has been inspired by the
 [react-query](https://react-query-v3.tanstack.com/) library.
 
 `useQuery` accepts the following properties:
@@ -573,7 +577,7 @@ a fetch operation. The arguments to `refetch` will be passed on to `queryFn`.
 
 Sample usage:
 
-```javascript
+```jsx
 function App() {
   const refs = useRefProxy();
   const [, setIsLoading] = usePropertyBoolean(refs.button, 'disabled', true, false);
@@ -606,19 +610,19 @@ function App() {
 
 - `onStart`: function that runs when the mutation begins
 - `mutationFn`: an async function that performs the mutation to the remote API
-- `onSuccess`: function that runs after a successful mutation; it receives the remote
-  server's response
-- `onError`: function that runs after a failed mutation; it receives the error object
-- `onEnd`: function that runs when the mutation ends, regardless of whether the mutation
-  was successful or not
+- `onSuccess`: function that runs after a successful mutation; it receives the
+  remote server's response
+- `onError`: function that runs after a failed mutation; it receives the error
+  object
+- `onEnd`: function that runs when the mutation ends, regardless of whether the
+  mutation was successful or not
 
 `useMutation` returns a mutation object with a `mutate` method you can use to
-trigger a mutation. The arguments to `mutate` will be passed on to
-`mutationFn`.
+trigger a mutation. The arguments to `mutate` will be passed on to `mutationFn`.
 
 Sample usage:
 
-```javascript
+```jsx
 function App() {
   const [input, button, paragraph] = useRefs();
   const [getInput, setInput] = useTextInput(input);
@@ -660,13 +664,13 @@ you want to control with the form. You also get:
 
 - a `registerForm` function to insert into the `<form>` element to intercept its
   submission
-- a `registerError` function to insert into DOM elements you want validation errors to
-  appear in
+- a `registerError` function to insert into DOM elements you want validation
+  errors to appear in
 - `reset` which you can invoke to reset all inputs to their default value
 
 Here it is in action:
 
-```javascript
+```jsx
 export default function App() {
   const [successMsg] = useRefs();
   const [, setSuccessMsg] = useTextContent(successMsg);
@@ -750,7 +754,7 @@ will render the `NotFound` property.
 
 Here it is in action:
 
-```javascript
+```jsx
 export default function App() {
   return (
     <Route path="" NotFound={() => <h1>Page not found</h1>}>
@@ -791,193 +795,124 @@ export default function App() {
 
 ### Controlled Inputs
 
-Writing controlled inputs is a bit harder than doing so in React. A _controlled input_
-is an input element that can be manipulated by the browser and **also** by external
-code. The recommended way to do so in domstatejsx is:
+Writing controlled inputs is a bit harder than doing so in React. There are two
+components to this.
 
-1. Write a component that accepts an `onChange` callback.
+#### Controlling native inputs
 
-   ```javascript
-   function Radio({ onChange, options }) {
-     return (
-       <>
-         {options.map((option) => (
-           <label>
-             <input type="radio" />
-             {option}
-           </label>
-         ))}
-       </>
-     );
-   }
-   ```
+```jsx
+function App() {
+  const refs = useRefProxy();
 
-2. Have this component expose `get` and `set` functions with context
+  const [get, set] = useTextInput(refs.input);
 
-   ```diff
-    function Radio({ onChange, options }) {
-   +  const refs = []
-   +  const ref = (r) => refs.push(r);
-
-   +  function get() {
-   +    // Remember, our "state" lives in the DOM
-   +    return refs.find(
-   +      ({ current: { checked } }) => checked,
-   +    ).current.nextSibling.textContent;
-   +  }
-
-   + function set(value) {
-   +   refs.forEach(({ current }) => { current.checked = false; });
-   +   refs.find(
-   +     ({ current }) => current.nextSibling.textContent === value,
-   +   ).current.checked = true;
-   + }
-
-      return (
-   -    <>
-   +    <Radio.Context.Provider value={{ get, set }}>
-         {options.map((option) => (
-           <label>
-   -         <input type="radio" />
-   +         <input type="radio" ref={ref} />
-             {option}
-           </label>
-         ))}
-   -    </>
-   +    </Radio.Context.Provider>
-      );
-    }
-   +Radio.Context = createContext();
-   ```
-
-3. From inside a component, invoke `onChange` when the value is changed by the browser
-
-   ```diff
-    function Radio({ onChange, options }) {
-      const refs = []
-      const ref = (r) => refs.push(r);
-
-      function get() {
-        // Remember, our "state" lives in the DOM
-        return refs.find(
-          ({ current: { checked } }) => checked,
-        ).current.nextSibling.textContent;
-      }
-
-     function set(value) {
-       refs.forEach(({ current }) => { current.checked = false; });
-       refs.find(
-         ({ current }) => current.nextSibling.textContent === value,
-       ).current.checked = true;
-     }
-
-   + function handleClick(option) {
-   +   set(option);  // Do this in order to reset the checked status of other radios
-   +   onChange(option);
-   + }
-
-      return (
-        <Radio.Context.Provider value={{ get, set }}>
-         {options.map((option) => (
-           <label>
-   -         <input type="radio" ref={ref} />
-   +         <input type="radio" onClick={() => handleClick(option)} ref={ref} />
-             {option}
-           </label>
-         ))}
-        </Radio.Context.Provider>
-      );
-    }
-   +Radio.Context = createContext();
-   ```
-
-4. Render this component and keep a ref pointing to it
-
-   ```javascript
-   export default function App() {
-     const [inputRef] = useRefs();
-
-     return (
-       <>
-         <Radio options={['Zero', 'One', 'Two', 'Three']} ref={inputRef} />
-       </>
-     );
-   }
-   ```
-
-5. Use the `useControlledInput` hook on this ref
-
-   ```diff
-   +import { useControlledInput } from 'domstatejsx';
-
-    export default function App() {
-      const [inputRef] = useRefs();
-
-   +  const [get, set] = useControlledInput(inputRef)
-
-      return (
-        <>
-          <Radio
-            options={['Zero', 'One', 'Two', 'Three']}
-            ref={inputRef}
-          />
-        </>
-      );
-    }
-   ```
-
-6. Make the `onChange` callback call the setter returned by the hook
-
-   ```diff
-    export default function App() {
-      const [inputRef] = useRefs();
-
-      const [get, set] = useControlledInput(inputRef)
-
-      return (
-        <>
-          <Radio
-            options={['Zero', 'One', 'Two', 'Three']}
-   +        onChange={set}
-            ref={inputRef}
-          />
-        </>
-      );
-    }
-   ```
-
-Now we can control this input from outside:
-
-```javascript
-export default function App() {
-  const [inputRef, spanRef] = useRefs();
-
-  const [, set] = combineHooks(
-    useControlledInput(inputRef),
-    useTextContent(spanRef),
-  );
+  function handleChange(event) {
+    /* ... */
+  }
 
   return (
-    <>
-      <Radio
-        defaultValue="Three"
-        onChange={set}
-        options={['Zero', 'One', 'Two', 'Three']}
-        ref={inputRef}
-      />
-      <p>
-        <button onClick={() => set('Two')}>Select "two"</button>
-      </p>
-      <p>
-        Selected Value: <span ref={spanRef} />
-      </p>
-    </>
+    <input ref={refs.input} onChange={handleChange} value="defaultValue" />
   );
 }
 ```
 
-In this example, when the selection is changed, the 'span' is updated to reflect the
-change. We can also change the radio's selection by clicking the button.
+You have several handles on this element:
+
+- You can set its default value (the `value` prop)
+- You can get its current value with `get`
+- You can change its current value with `set`
+- You can respond to changes made by the user with `onChange`
+
+#### Controlling custom components
+
+The goal is to replicate these handles for custom components. Let's do it step
+by step: Let's start by writing our own input component that just wraps a native
+input:
+
+```jsx
+function MyInput({ value, onChange }) {
+  return <input value={value} onChange={onChange} />;
+}
+```
+
+Let's now expose its `get` and `set` functions with context:
+
+```diff
+ function MyInput({ value, onChange }) {
++  const refs = useRefProxy();
++  const [get, set] = useTextInput(refs.input);
+   return (
++    <MyInput.Context.Provider value={{ get, set }}>
+       <input value={value} onChange={onChange} />
++    </MyInput.Context.Provider>
+   );
+ }
++MyInput.Context = createContext();
+```
+
+And finally, let's rewrite our `App` from before with our new custom input:
+
+```diff
+ function App() {
+   const refs = useRefProxy();
+
+-  const [get, set] = useTextInput(refs.input);
++  const [get, set] = useControlledInput(refs.input);
+
+   function handleChange(event) { /* ... */ }
+
+   return (
+-    <input ref={refs.input} onChange={handleChange} value="defaultValue" />
++    <MyInput ref={refs.input} onChange={handleChange} value="defaultValue" />
+   );
+ }
+```
+
+> `useControlledInput` works with any component that exposes `get` and `set`
+> functions with its context.
+
+You can of course use any component you want, not just simple wrappers of native
+inputs. Here is a custom radio component:
+
+```jsx
+function Radio({ value, onChange, options }) {
+  const refs = useRefProxy();
+  const name = uuid4(); // Used to define the radio group
+
+  function get() {
+    const checkedLabels = [...refs.head.current.childNodes].filter(
+      (label) => label.childNodes[0].checked,
+    );
+    if (checkedLabels.length) {
+      return checkedLabels[0].childNodes[1].textContent;
+    }
+    return null;
+  }
+
+  function set(value) {
+    [...refs.head.current.childNodes]
+      .filter((label) => label.childNodes[1].textContent === value)
+      .forEach((label) => (label.childNodes[0].checked = true));
+  }
+
+  return (
+    <Radio.Context.Provider ref={refs.head} value={{ get, set }}>
+      {options.map((option) => (
+        <label>
+          <input
+            type="radio"
+            onChange={() => onChange(option)}
+            checked={option === value}
+            name={name} // Radio group
+          />
+          {option}
+        </label>
+      ))}
+    </Radio.Context.Provider>
+  );
+}
+Radio.Context = createContext();
+```
 
 # Testing
 
@@ -1046,7 +981,7 @@ You can test domstatejsx components using [vitest](https://vitejs.dev/) and
 
 Lets pretend we want to test this simple component:
 
-```javascript
+```jsx
 // counter.jsx
 
 import { useIntContent, useRefs } from 'domstatejsx';
@@ -1070,7 +1005,7 @@ export default function Counter() {
 
 We can do it like this:
 
-```javascript
+```jsx
 import { fireEvent, screen } from '@testing-library/dom';
 import { afterEach, expect } from 'vitest';
 
@@ -1128,7 +1063,7 @@ test('Clicking twice increments counter twice', () => {
   DOM element to the `.current` field of the ref. So, the following are
   equivalent:
 
-  ```javascript
+  ```jsx
   function Timer() {
     const [numSpan] = useRefs();
     const span = <span>0</span>;
@@ -1137,7 +1072,7 @@ test('Clicking twice increments counter twice', () => {
   }
   ```
 
-  ```javascript
+  ```jsx
   function Timer() {
     const [numSpan] = useRefs();
     return (
@@ -1149,13 +1084,13 @@ test('Clicking twice increments counter twice', () => {
   ```
 
 - `useRefProxy` creates refs lazily using Proxy objects. Instead of declaring
-  individual refs, you get an object that creates refs on-demand when you
-  access properties:
+  individual refs, you get an object that creates refs on-demand when you access
+  properties:
 
-  ```javascript
+  ```jsx
   function App() {
     const refs = useRefProxy();
-    
+
     return (
       <>
         <input ref={refs.username} />
@@ -1166,8 +1101,9 @@ test('Clicking twice increments counter twice', () => {
   }
   ```
 
-  This is equivalent to `const refs = { username: {}, password: {}, submitBtn: {} }`
-  but more concise when you have many refs.
+  This is equivalent to
+  `const refs = { username: {}, password: {}, submitBtn: {} }` but more concise
+  when you have many refs.
 
 - `useIntContent` receives a ref as an argument and returns 2 functions: a
   getter and a setter. The getter returns the content of the element in integer
@@ -1179,7 +1115,7 @@ Here is the full list of hooks:
 
 - `useTextContent`: Inspect/modify the text content of an element
 
-  ```javascript
+  ```jsx
   function App() {
     const [textHeader] = useRefs();
     const [, setText] = useTextContent(textHeader);
@@ -1192,10 +1128,11 @@ Here is the full list of hooks:
 
 - `useCheckbox`: Inspect/modify the "checked" status of a checkbox
 
-  ```javascript
+  ```jsx
   function App() {
     const [checkbox] = useRefs();
-    const [isChecked] = useCheckbox(); // A setter is also returned but we don't use it
+    // A setter is also returned but we don't use it
+    const [isChecked] = useCheckbox();
 
     function handleClick() {
       alert(`The checkbox is ${isChecked() ? '' : 'not'} checked`);
@@ -1216,10 +1153,11 @@ Here is the full list of hooks:
 
 - `useTextInput`: Inspect/modify the value of a text input
 
-  ```javascript
+  ```jsx
   function App() {
     const [textInput] = useRefs();
-    const [getText] = useTextInput(textInput); // A setter is also returned but we don't use it
+    // A setter is also returned but we don't use it
+    const [getText] = useTextInput(textInput);
 
     function handleClick() {
       alert(`Hello ${getText()}`);
@@ -1240,7 +1178,7 @@ Here is the full list of hooks:
 
 - `useNumberInput`: Inspect/modify the value of a number input as an integer
 
-  ```javascript
+  ```jsx
   function App() {
     const [numberInput] = useRefs();
     const [getNumber, setNumber] = useNumberInput(numberInput);
@@ -1265,10 +1203,11 @@ Here is the full list of hooks:
 - `useErrorMessage`: This works like `useTextContent`, but will also make sure
   the whole element becomes hidden when the setter's argument is falsy
 
-  ```javascript
+  ```jsx
   function App() {
     const [textInput, errorDiv] = useRefs();
-    const [getText] = useTextInput(textInput); // A setter is also returned but we don't use it
+    // A setter is also returned but we don't use it
+    const [getText] = useTextInput(textInput);
     const [, setError] = useErrorMessage(errorDiv);
 
     function handleClick() {
@@ -1291,12 +1230,12 @@ Here is the full list of hooks:
   ```
 
 - `useStyleBoolean`: This toggles a style property between two values. The
-  signature of the hook is:
-  `useStyleBoolean(ref, property, onValue, offValue)`. The getter tells us if
-  the style `property`'s value matches the `onValue` and the getter receives a
-  boolean and sets the `property`'s value to `onValue` or `offValue`.
+  signature of the hook is: `useStyleBoolean(ref, property, onValue, offValue)`.
+  The getter tells us if the style `property`'s value matches the `onValue` and
+  the getter receives a boolean and sets the `property`'s value to `onValue` or
+  `offValue`.
 
-  ```javascript
+  ```jsx
   function App() {
     const [span] = useRefs();
     const [, setLineThrough] = useStyleBoolean(
@@ -1322,7 +1261,7 @@ Here is the full list of hooks:
 - `usePropertyBoolean`: This works like `useStyleBoolean` but for generic HTML
   properties:
 
-  ```javascript
+  ```jsx
   function App() {
     const [button] = useRefs();
     const [, setLoading] = usePropertyBoolean(button, 'disabled', true, false);
@@ -1339,10 +1278,10 @@ Here is the full list of hooks:
   }
   ```
 
-- `useClassBoolean`: This works like `useStyleBoolean` but for HTML classes
-  (for this example assume we are using tailwind CSS):
+- `useClassBoolean`: This works like `useStyleBoolean` but for HTML classes (for
+  this example assume we are using tailwind CSS):
 
-  ```javascript
+  ```jsx
   function App() {
     const [span] = useRefs();
     const [, setLineThrough] = useClassBoolean(span, 'line-through', null);
@@ -1365,7 +1304,7 @@ Here is the full list of hooks:
   arguments to the setter (which also supports variable argument length). The
   getter returns refs for all the items that have been added by the setter:
 
-  ```javascript
+  ```jsx
   function App() {
     const [textInput, todoList] = useRefs();
     const [getText, setText] = useTextInput(textInput);
@@ -1405,7 +1344,7 @@ Here is the full list of hooks:
   pair for reading/writing to localStorage. The getter returns the stored string
   value (or `null` if not set), and the setter saves the value to localStorage:
 
-  ```javascript
+  ```jsx
   function App() {
     const refs = useRefProxy();
     const [getInput, setInput] = combineHooks(
@@ -1433,7 +1372,7 @@ Here is the full list of hooks:
   return value of the first hook and the combined setter invokes all the
   setters:
 
-  ```javascript
+  ```jsx
   function App() {
     const [checkbox, text] = useRefs();
     const [isDone, setIsDone] = combineHooks(
@@ -1454,23 +1393,23 @@ Here is the full list of hooks:
 
 - `createContext`: This creates a new context object. Receives a default value
 
-- `.Provider`: A component that receives a value and attaches it to the DOM
-  so that it can be found by `useContext`
+- `.Provider`: A component that receives a value and attaches it to the DOM so
+  that it can be found by `useContext`
 
 - `useContext`: Receives a DOM element and a context object and scans "upwards"
-  in the DOM to find a parent element that uses this context object to provide
-  a value. Accepts a third 'options' property that has a `direction` key that
+  in the DOM to find a parent element that uses this context object to provide a
+  value. Accepts a third 'options' property that has a `direction` key that
   accepts 3 values:
-
-  - `up`: The default value, searches upwards to find a DOM element for the context
+  - `up`: The default value, searches upwards to find a DOM element for the
+    context
 
   - `down`: Searches "below" in the DOM tree to find all elements that have a
     context specified by the context object; returns a list of contexts
 
   - `side`, combined with `upContext`: Combines the two searches; first it
     search upward until it finds a parent element that uses the `upContext`
-    then, using that element as a starting point, searches downwards to find
-    all contexts that match the context argument
+    then, using that element as a starting point, searches downwards to find all
+    contexts that match the context argument
 
 # Development playground
 
@@ -1485,18 +1424,20 @@ npm install
 npm run dev
 ```
 
-The playground contains several demo applications under `./src/playground/`. To switch
-between them, change the first line in `./src/playground/main.tsx`:
+The playground contains several demo applications under `./src/playground/`. To
+switch between them, change the first line in `./src/playground/main.tsx`:
 
 ```diff
 -import App from './todos';
 +import App from './accordion';
 ```
 
-Available demos: `accordion`, `todos`, `form`, `pagination`, `pager`, `home`, etc.
+Available demos: `accordion`, `todos`, `form`, `pagination`, `pager`, `home`,
+etc.
 
-[Here](https://www.kbairak.net/programming/react/2024/02/04/domstatejsx.html)
-is a blog post where I explain how this works.
+Here is a
+[blog post](https://www.kbairak.net/programming/react/2024/02/04/domstatejsx.html)
+where I explain how this works.
 
 # TODOs
 
@@ -1526,7 +1467,8 @@ Routing:
 - [ ] Routing with `<Outlet/>`s
 - [ ] Data router
 - [x] Make `<Link>`s aware of whether they are selected
-- [x] There is a bug somewhere with path matching (I don't remember what exactly)
+- [x] There is a bug somewhere with path matching (I don't remember what
+      exactly)
 
 Context:
 

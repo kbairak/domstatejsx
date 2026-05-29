@@ -244,5 +244,9 @@ export function createElement(
     return createElementCore(tag, componentProps, componentProps.children);
   }
 
-  return createElementCore(tag, props, children.length === 1 ? children[0] : children);
+  return createElementCore(
+    tag,
+    props,
+    children.length === 1 ? children[0] : children,
+  );
 }
